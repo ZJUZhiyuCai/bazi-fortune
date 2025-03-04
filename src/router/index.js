@@ -5,7 +5,7 @@ import ResultView from '../views/ResultView.vue'
 import ShareView from '../views/ShareView.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory('/bazi-fortune/'),
   routes: [
     {
       path: '/',
