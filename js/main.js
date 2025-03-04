@@ -1,4 +1,4 @@
-// 生成年份选项（1900-2024）
+// 生成年份选项（1900-2025）
 const yearSelect = document.getElementById('year');
 const currentYear = new Date().getFullYear();
 for (let year = 1900; year <= currentYear; year++) {
@@ -32,7 +32,6 @@ function updateDays() {
         daySelect.appendChild(option);
     }
 }
-
 // 生成时辰选项
 const hourSelect = document.getElementById('hour');
 const hours = [
@@ -57,6 +56,146 @@ hours.forEach(hour => {
     hourSelect.appendChild(option);
 });
 
+// 表单验证和提交
+const birthForm = document.getElementById('birthForm');
+const nameInput = document.getElementById('name');
+const genderInputs = document.getElementsByName('gender');
+const birthdateInput = document.getElementById('birthdate');
+
+// 错误提示函数
+function showError(element, message) {
+    const formGroup = element.closest('.form-group');
+    const errorDiv = formGroup.querySelector('.error-message') || document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    if (!formGroup.querySelector('.error-message')) {
+        formGroup.appendChild(errorDiv);
+    }
+    element.classList.add('error');
+}
+
+// 清除错误提示
+function clearError(element) {
+    const formGroup = element.closest('.form-group');
+    const errorDiv = formGroup.querySelector('.error-message');
+    if (errorDiv) {
+        formGroup.removeChild(errorDiv);
+    }
+    element.classList.remove('error');
+}
+
+// 验证姓名
+function validateName(name) {
+    return name.trim().length >= 2 && name.trim().length <= 15;
+}
+
+// 验证性别
+function validateGender() {
+    return Array.from(genderInputs).some(input => input.checked);
+}
+
+// 验证出生日期
+function validateBirthdate(date) {
+    const selectedDate = new Date(date);
+    const currentDate = new Date();
+    return selectedDate <= currentDate && selectedDate >= new Date('1900-01-01');
+}
+
+// 表单提交处理
+birthForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    let isValid = true;
+
+    // 验证姓名
+    if (!validateName(nameInput.value)) {
+        showError(nameInput, '请输入2-15个字符的姓名');
+        isValid = false;
+    } else {
+        clearError(nameInput);
+    }
+
+    // 验证性别
+    if (!validateGender()) {
+        const genderGroup = document.querySelector('.radio-group');
+        showError(genderGroup, '请选择性别');
+        isValid = false;
+    } else {
+        clearError(document.querySelector('.radio-group'));
+    }
+
+    // 验证出生日期
+    if (!validateBirthdate(birthdateInput.value)) {
+        showError(birthdateInput, '请选择有效的出生日期（1900年至今）');
+        isValid = false;
+    } else {
+        clearError(birthdateInput);
+    }
+
+    // 验证时辰
+    if (!hourSelect.value) {
+        showError(hourSelect, '请选择出生时辰');
+        isValid = false;
+    } else {
+        clearError(hourSelect);
+    }
+
+    if (isValid) {
+        // 显示加载动画
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'loading-overlay';
+        loadingOverlay.innerHTML = '<div class="loading-spinner"></div>';
+        document.body.appendChild(loadingOverlay);
+
+        // 构建查询参数
+        const formData = new FormData(birthForm);
+        const params = new URLSearchParams();
+        params.append('name', nameInput.value);
+        params.append('gender', document.querySelector('input[name="gender"]:checked').value);
+        params.append('birthdate', birthdateInput.value);
+        params.append('birthHour', hourSelect.value);
+
+        // 延迟跳转以显示加载动画
+        setTimeout(() => {
+            window.location.href = `loading.html?${params.toString()}`;
+        }, 500);
+    }
+});
+
+// 添加输入事件监听器以实时验证
+nameInput.addEventListener('input', () => {
+    if (nameInput.value.trim()) {
+        if (validateName(nameInput.value)) {
+            clearError(nameInput);
+        } else {
+            showError(nameInput, '请输入2-15个字符的姓名');
+        }
+    }
+});
+
+birthdateInput.addEventListener('change', () => {
+    if (birthdateInput.value) {
+        if (validateBirthdate(birthdateInput.value)) {
+            clearError(birthdateInput);
+        } else {
+            showError(birthdateInput, '请选择有效的出生日期（1900年至今）');
+        }
+    }
+});
+
+hourSelect.addEventListener('change', () => {
+    if (hourSelect.value) {
+        clearError(hourSelect);
+    }
+});
+
+// 性别选择事件监听
+genderInputs.forEach(input => {
+    input.addEventListener('change', () => {
+        if (validateGender()) {
+            clearError(document.querySelector('.radio-group'));
+        }
+    });
+});
 // 监听年月变化，更新日期选项
 yearSelect.addEventListener('change', updateDays);
 monthSelect.addEventListener('change', updateDays);
@@ -81,10 +220,10 @@ document.getElementById('birthForm').addEventListener('submit', function(e) {
 function calculateFortune(year, month, day, hour) {
     // 这里添加您的八字计算逻辑
     return {
-        title: '2024年运势预测',
+        title: '2025年运势预测',
         summary: '今年运势总体平稳，适合稳扎稳打。',
         details: [
-            '事业：工作上会有新的机遇，但需要谨慎把握。',
+            '事业：工作中会有新的机遇，但需要谨慎把握。',
             '财运：财运平稳，适合稳健理财。',
             '感情：桃花运旺盛，但需要理性对待。',
             '健康：注意作息规律，保持良好心态。'
@@ -108,4 +247,4 @@ function showResult(result) {
     
     // 替换表单内容
     document.querySelector('.form-container').innerHTML = resultHTML;
-} 
+}
