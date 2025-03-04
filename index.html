@@ -8,40 +8,41 @@
 </head>
 <body>
     <div class="container">
+        <div class="chinese-pattern-top"></div>
         <div class="header">
-            <h1>八字算命</h1>
-            <p>基于您的生辰八字，为您预测2024年运势</p>
+            <h1 class="chinese-title">八字算命</h1>
+            <p class="welcome-text">基于您的生辰八字，为您预测2024年运势</p>
         </div>
         
         <div class="form-container">
             <form id="birthForm">
                 <div class="form-group">
-                    <label for="year">出生年份</label>
-                    <select id="year" required>
-                        <option value="">请选择年份</option>
-                        <!-- 年份选项将通过 JavaScript 动态生成 -->
-                    </select>
+                    <label for="name">姓名</label>
+                    <input type="text" id="name" required placeholder="请输入您的姓名" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">性别</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="gender" value="male" required>
+                            <span>男</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="gender" value="female">
+                            <span>女</span>
+                        </label>
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="month">出生月份</label>
-                    <select id="month" required>
-                        <option value="">请选择月份</option>
-                        <!-- 月份选项将通过 JavaScript 动态生成 -->
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="day">出生日期</label>
-                    <select id="day" required>
-                        <option value="">请选择日期</option>
-                        <!-- 日期选项将通过 JavaScript 动态生成 -->
-                    </select>
+                    <label for="birthdate">出生日期</label>
+                    <input type="date" id="birthdate" required class="form-input">
                 </div>
                 
                 <div class="form-group">
                     <label for="hour">出生时辰</label>
-                    <select id="hour" required>
+                    <select id="hour" required class="form-input">
                         <option value="">请选择时辰</option>
                         <!-- 时辰选项将通过 JavaScript 动态生成 -->
                     </select>
@@ -50,6 +51,7 @@
                 <button type="submit" class="submit-btn">开始测算</button>
             </form>
         </div>
+        <div class="chinese-pattern-bottom"></div>
     </div>
 
     <script src="./js/main.js"></script>

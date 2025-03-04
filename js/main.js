@@ -35,14 +35,25 @@ function updateDays() {
 
 // 生成时辰选项
 const hourSelect = document.getElementById('hour');
-const hours = ['子时 (23:00-1:00)', '丑时 (1:00-3:00)', '寅时 (3:00-5:00)', 
-               '卯时 (5:00-7:00)', '辰时 (7:00-9:00)', '巳时 (9:00-11:00)',
-               '午时 (11:00-13:00)', '未时 (13:00-15:00)', '申时 (15:00-17:00)',
-               '酉时 (17:00-19:00)', '戌时 (19:00-21:00)', '亥时 (21:00-23:00)'];
-hours.forEach((hour, index) => {
+const hours = [
+    { value: '23', label: '子时 (23:00-1:00)' },
+    { value: '1', label: '丑时 (1:00-3:00)' },
+    { value: '3', label: '寅时 (3:00-5:00)' },
+    { value: '5', label: '卯时 (5:00-7:00)' },
+    { value: '7', label: '辰时 (7:00-9:00)' },
+    { value: '9', label: '巳时 (9:00-11:00)' },
+    { value: '11', label: '午时 (11:00-13:00)' },
+    { value: '13', label: '未时 (13:00-15:00)' },
+    { value: '15', label: '申时 (15:00-17:00)' },
+    { value: '17', label: '酉时 (17:00-19:00)' },
+    { value: '19', label: '戌时 (19:00-21:00)' },
+    { value: '21', label: '亥时 (21:00-23:00)' }
+];
+
+hours.forEach(hour => {
     const option = document.createElement('option');
-    option.value = index;
-    option.textContent = hour;
+    option.value = hour.value;
+    option.textContent = hour.label;
     hourSelect.appendChild(option);
 });
 
@@ -54,16 +65,16 @@ monthSelect.addEventListener('change', updateDays);
 document.getElementById('birthForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const year = yearSelect.value;
-    const month = monthSelect.value;
-    const day = daySelect.value;
-    const hour = hourSelect.value;
+    const formData = {
+        name: document.getElementById('name').value,
+        gender: document.querySelector('input[name="gender"]:checked').value,
+        birthdate: document.getElementById('birthdate').value,
+        birthHour: document.getElementById('hour').value
+    };
     
-    // 这里可以添加您的八字计算逻辑
-    const result = calculateFortune(year, month, day, hour);
-    
-    // 显示结果
-    showResult(result);
+    // 将表单数据添加到URL并跳转到加载页面
+    const params = new URLSearchParams(formData);
+    window.location.href = `loading.html?${params.toString()}`;
 });
 
 // 计算运势（示例函数）

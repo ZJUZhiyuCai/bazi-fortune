@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>八字算命 - 运势预测结果</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="chinese-pattern-top"></div>
+        <div class="result-container">
+            <h2 class="chinese-title">2024年运势预测</h2>
+            <div class="user-info">
+                <span class="name"></span>
+                <span class="gender"></span>
+                <span class="birthdate"></span>
+            </div>
+            
+            <div class="bazi-info">
+                <h3>您的八字</h3>
+                <div class="bazi-grid">
+                    <div class="bazi-cell">年柱</div>
+                    <div class="bazi-cell">月柱</div>
+                    <div class="bazi-cell">日柱</div>
+                    <div class="bazi-cell">时柱</div>
+                </div>
+            </div>
+
+            <div class="fortune-summary">
+                <h3>运势总述</h3>
+                <p class="summary"></p>
+            </div>
+
+            <div class="fortune-details">
+                <h3>详细分析</h3>
+                <ul class="details">
+                    <!-- 详细分析将通过 JavaScript 动态生成 -->
+                </ul>
+            </div>
+
+            <div class="lucky-elements">
+                <h3>吉运元素</h3>
+                <div class="element-grid">
+                    <div class="element">
+                        <span class="label">吉祥方位</span>
+                        <span class="value direction"></span>
+                    </div>
+                    <div class="element">
+                        <span class="label">吉祥颜色</span>
+                        <span class="value color"></span>
+                    </div>
+                    <div class="element">
+                        <span class="label">幸运数字</span>
+                        <span class="value number"></span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="window.location.href='index.html'" class="submit-btn">重新测算</button>
+            <button onclick="shareResult()" class="share-btn">分享结果</button>
+        </div>
+        <div class="chinese-pattern-bottom"></div>
+    </div>
+
+    <script src="./js/result.js"></script>
+</body>
+</html> 
