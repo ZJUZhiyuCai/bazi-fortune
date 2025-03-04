@@ -55,12 +55,11 @@ hours.forEach(hour => {
     option.textContent = hour.label;
     hourSelect.appendChild(option);
 });
-
 // 表单验证和提交
 const birthForm = document.getElementById('birthForm');
 const nameInput = document.getElementById('name');
 const genderInputs = document.getElementsByName('gender');
-const birthdateInput = document.getElementById('birthdate');
+const birthDateTimeInput = document.getElementById('birthDateTime');
 
 // 错误提示函数
 function showError(element, message) {
@@ -94,11 +93,24 @@ function validateGender() {
     return Array.from(genderInputs).some(input => input.checked);
 }
 
-// 验证出生日期
-function validateBirthdate(date) {
-    const selectedDate = new Date(date);
+// 验证出生日期时间
+function validateBirthDateTime(dateTimeStr) {
+    const selectedDate = new Date(dateTimeStr);
     const currentDate = new Date();
     return selectedDate <= currentDate && selectedDate >= new Date('1900-01-01');
+}
+
+// 时间转时辰
+function getChineseHour(hour) {
+    const hourMap = {
+        23: '子', 0: '子', 1: '丑', 2: '丑',
+        3: '寅', 4: '寅', 5: '卯', 6: '卯',
+        7: '辰', 8: '辰', 9: '巳', 10: '巳',
+        11: '午', 12: '午', 13: '未', 14: '未',
+        15: '申', 16: '申', 17: '酉', 18: '酉',
+        19: '戌', 20: '戌', 21: '亥', 22: '亥'
+    };
+    return hourMap[hour] || '';
 }
 
 // 表单提交处理
@@ -123,20 +135,12 @@ birthForm.addEventListener('submit', function(e) {
         clearError(document.querySelector('.radio-group'));
     }
 
-    // 验证出生日期
-    if (!validateBirthdate(birthdateInput.value)) {
-        showError(birthdateInput, '请选择有效的出生日期（1900年至今）');
+    // 验证出生日期时间
+    if (!validateBirthDateTime(birthDateTimeInput.value)) {
+        showError(birthDateTimeInput, '请选择有效的出生日期时间（1900年至今）');
         isValid = false;
     } else {
-        clearError(birthdateInput);
-    }
-
-    // 验证时辰
-    if (!hourSelect.value) {
-        showError(hourSelect, '请选择出生时辰');
-        isValid = false;
-    } else {
-        clearError(hourSelect);
+        clearError(birthDateTimeInput);
     }
 
     if (isValid) {
@@ -146,13 +150,17 @@ birthForm.addEventListener('submit', function(e) {
         loadingOverlay.innerHTML = '<div class="loading-spinner"></div>';
         document.body.appendChild(loadingOverlay);
 
+        // 获取日期时间并转换时辰
+        const birthDateTime = new Date(birthDateTimeInput.value);
+        const hour = birthDateTime.getHours();
+        const chineseHour = getChineseHour(hour);
+
         // 构建查询参数
-        const formData = new FormData(birthForm);
         const params = new URLSearchParams();
         params.append('name', nameInput.value);
         params.append('gender', document.querySelector('input[name="gender"]:checked').value);
-        params.append('birthdate', birthdateInput.value);
-        params.append('birthHour', hourSelect.value);
+        params.append('birthdate', birthDateTime.toISOString().split('T')[0]);
+        params.append('birthHour', chineseHour);
 
         // 延迟跳转以显示加载动画
         setTimeout(() => {
@@ -172,19 +180,13 @@ nameInput.addEventListener('input', () => {
     }
 });
 
-birthdateInput.addEventListener('change', () => {
-    if (birthdateInput.value) {
-        if (validateBirthdate(birthdateInput.value)) {
-            clearError(birthdateInput);
+birthDateTimeInput.addEventListener('change', () => {
+    if (birthDateTimeInput.value) {
+        if (validateBirthDateTime(birthDateTimeInput.value)) {
+            clearError(birthDateTimeInput);
         } else {
-            showError(birthdateInput, '请选择有效的出生日期（1900年至今）');
+            showError(birthDateTimeInput, '请选择有效的出生日期时间（1900年至今）');
         }
-    }
-});
-
-hourSelect.addEventListener('change', () => {
-    if (hourSelect.value) {
-        clearError(hourSelect);
     }
 });
 

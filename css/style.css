@@ -13,6 +13,42 @@ body {
     justify-content: center;
     align-items: center;
     padding: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* 流星背景效果 */
+@keyframes shooting-star {
+    0% {
+        transform: translateX(0) translateY(0) rotate(45deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(-100vw) translateY(100vh) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+.shooting-star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.1),
+               0 0 0 8px rgba(255,255,255,0.1),
+               0 0 20px rgba(255,255,255,1);
+    animation: shooting-star 3s linear infinite;
+}
+
+.shooting-star::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100px;
+    height: 1px;
+    background: linear-gradient(90deg, #fff, transparent);
 }
 
 .container {
@@ -20,6 +56,7 @@ body {
     max-width: 800px;
     margin: 0 auto;
     position: relative;
+    z-index: 1;
 }
 
 .chinese-title {
@@ -28,7 +65,13 @@ body {
     color: #fff;
     margin-bottom: 2rem;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    animation: titleGlow 2s ease-in-out infinite;
+    animation: titlePulse 3s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+    0% { opacity: 0.8; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+    50% { opacity: 1; text-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+    100% { opacity: 0.8; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
 }
 
 .subtitle {
@@ -77,7 +120,7 @@ label {
     background-color: rgba(26, 26, 46, 0.9);
 }
 
-input[type="date"].form-input {
+input[type="time"].form-input {
     padding: 0.8rem 1rem;
     color-scheme: dark;
 }
