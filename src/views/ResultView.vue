@@ -534,12 +534,18 @@ h2 {
 }
 
 .fortune-item {
-  padding: 25px;
-  background: rgba(40, 35, 54, 0.95);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(142, 197, 252, 0.2);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  padding: 30px;
+  background: linear-gradient(145deg, rgba(40, 35, 54, 0.95), rgba(60, 50, 80, 0.95));
+  border-radius: 16px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(142, 197, 252, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.fortune-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .fortune-item h3 {

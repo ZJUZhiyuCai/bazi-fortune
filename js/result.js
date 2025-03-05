@@ -123,19 +123,56 @@ document.querySelector('.fortune-details').appendChild(wuXingInfo);
 // 增强分享功能
 function shareResult() {
     const shareOptions = [
-        { name: '复制文本', action: copyToClipboard },
-        { name: '生成图片', action: generateImage },
-        { name: '保存PDF', action: savePDF }
+        { name: '复制文本', icon: '📋', action: copyToClipboard },
+        { name: '生成图片', icon: '🖼️', action: generateImage },
+        { name: '保存PDF', icon: '📄', action: savePDF },
+        { name: '分享到微信', icon: '💬', action: shareToWechat },
+        { name: '分享到微博', icon: '🔄', action: shareToWeibo },
+        { name: '分享到QQ', icon: '💭', action: shareToQQ },
+        { name: '生成二维码', icon: '📱', action: generateQRCode }
     ];
 
     const shareMenu = document.createElement('div');
     shareMenu.className = 'share-menu';
+    
+    // 添加标题
+    const menuTitle = document.createElement('div');
+    menuTitle.className = 'share-menu-title';
+    menuTitle.textContent = '选择分享方式';
+    shareMenu.appendChild(menuTitle);
+
+    // 创建按钮容器
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'share-buttons-container';
+
     shareOptions.forEach(option => {
         const button = document.createElement('button');
-        button.textContent = option.name;
+        button.className = 'share-button';
+        button.innerHTML = `<span class="share-icon">${option.icon}</span><span class="share-text">${option.name}</span>`;
         button.onclick = option.action;
-        shareMenu.appendChild(button);
+        
+        // 添加涟漪效果
+        button.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            this.appendChild(ripple);
+            const rect = this.getBoundingClientRect();
+            ripple.style.left = e.clientX - rect.left + 'px';
+            ripple.style.top = e.clientY - rect.top + 'px';
+            setTimeout(() => ripple.remove(), 1000);
+        });
+
+        buttonContainer.appendChild(button);
     });
+
+    shareMenu.appendChild(buttonContainer);
+
+    // 添加关闭按钮
+    const closeButton = document.createElement('button');
+    closeButton.className = 'share-menu-close';
+    closeButton.innerHTML = '✕';
+    closeButton.onclick = () => shareMenu.remove();
+    shareMenu.appendChild(closeButton);
 
     // 显示分享菜单
     const existingMenu = document.querySelector('.share-menu');
@@ -143,9 +180,31 @@ function shareResult() {
         existingMenu.remove();
     }
     document.querySelector('.result-container').appendChild(shareMenu);
+
+    // 添加动画效果
+    setTimeout(() => shareMenu.classList.add('show'), 10);
+
 }
 
 // 复制文本
+// 分享到微信
+function shareToWechat() {
+    const qrcode = document.createElement('div');
+    qrcode.id = 'wechat-qrcode';
+    new QRCode(qrcode, {
+        text: window.location.href,
+        width: 200,
+        height: 200
+    });
+    document.querySelector('.share-menu').appendChild(qrcode);
+}
+
+// 分享到微博
+function shareToWeibo() {
+    const url = `http://service.weibo.com/share/share.php?url=${encodeURIComponent(window.location.href)}&title=我在八字算命网站测算了2025年运势`;
+    window.open(url, '_blank');
+}
+
 function copyToClipboard() {
     const shareText = `
 我在八字算命网站测算了2025年运势：

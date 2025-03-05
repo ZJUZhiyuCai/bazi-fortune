@@ -21,34 +21,64 @@ const stepDescriptions = [
     '正在生成个性化运势报告...'
 ];
 
+let progressTextElement;
+
 function updateProgress() {
     const progress = ((currentStep + 1) / totalSteps) * 100;
     
-    // 添加平滑过渡动画
-    progressFill.style.transition = 'width 0.5s ease-in-out';
-    progressFill.style.width = `${progress}%`;
+    // 使用requestAnimationFrame优化动画，并添加缓动效果
+    const animateProgress = (targetWidth, startTime = performance.now()) => {
+      const currentTime = performance.now();
+      const elapsed = currentTime - startTime;
+      const duration = 500; // 动画持续时间（毫秒）
+      
+      if (elapsed < duration) {
+        const currentWidth = easeInOutCubic(elapsed / duration) * targetWidth;
+        progressFill.style.width = `${currentWidth}%`;
+        requestAnimationFrame(() => animateProgress(targetWidth, startTime));
+      } else {
+        progressFill.style.width = `${targetWidth}%`;
+      }
+    };
     
-    // 更新步骤状态和描述
+    animateProgress(progress);
+    
+    // 更新步骤状态和描述（使用DocumentFragment优化DOM操作）
+    const fragment = document.createDocumentFragment();
     steps.forEach((step, index) => {
+        const stepClone = step.cloneNode(true);
         if (index < currentStep) {
-            step.classList.remove('active');
-            step.classList.add('completed');
-            step.innerHTML = `<i class="fas fa-check"></i> ${stepDescriptions[index]}`;
+            stepClone.classList.remove('active');
+            stepClone.classList.add('completed');
+            stepClone.innerHTML = `<i class="fas fa-check"></i> ${stepDescriptions[index]}`;
         } else if (index === currentStep) {
-            step.classList.add('active');
-            step.classList.remove('completed');
-            step.innerHTML = `<div class="step-animation"></div>${stepDescriptions[index]}`;
+            stepClone.classList.add('active');
+            stepClone.classList.remove('completed');
+            stepClone.innerHTML = `<div class="step-animation"></div>${stepDescriptions[index]}`;
         } else {
-            step.classList.remove('active', 'completed');
-            step.textContent = stepDescriptions[index];
+            stepClone.classList.remove('active', 'completed');
+            stepClone.textContent = stepDescriptions[index];
         }
+        fragment.appendChild(stepClone);
+    });
+    
+    // 批量更新DOM
+    steps.forEach((step, index) => {
+        step.replaceWith(fragment.children[0]);
     });
 
-    // 添加进度百分比显示
-    const progressText = document.createElement('div');
-    progressText.className = 'progress-text';
-    progressText.textContent = `${Math.round(progress)}%`;
-    document.querySelector('.progress-container').appendChild(progressText);
+    // 更新进度百分比显示（复用DOM元素）
+    if (!progressTextElement) {
+        progressTextElement = document.createElement('div');
+        progressTextElement.className = 'progress-text';
+        document.querySelector('.progress-container').appendChild(progressTextElement);
+    }
+    progressTextElement.textContent = `${Math.round(progress)}%`;
+}
+
+// 添加缓动函数
+function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
 function nextStep() {
@@ -61,14 +91,14 @@ function nextStep() {
         const text = stepDescriptions[currentStep];
         let charIndex = 0;
         
-        const typeWriter = setInterval(() => {
-            if (charIndex < text.length) {
-                currentStepElement.textContent = text.substring(0, charIndex + 1);
-                charIndex++;
-            } else {
-                clearInterval(typeWriter);
-            }
-        }, 50);
+        const typeWriter = () => {
+          if (charIndex < text.length) {
+            currentStepElement.textContent = text.substring(0, charIndex + 1);
+            charIndex++;
+            requestAnimationFrame(typeWriter);
+          }
+        };
+        typeWriter();
     } else {
         // 添加完成动画
         const loadingContainer = document.querySelector('.loading-container');

@@ -5,22 +5,34 @@
     <p class="welcome-text">欢迎来到我们的运势预测网站。请输入您的基本信息，我们将为您生成个性化的运势预测。</p>
     
     <el-form :model="form" :rules="rules" ref="formRef" label-width="100px" class="fortune-form">
-      <el-form-item label="姓名" prop="name">
-        <el-input v-model="form.name" placeholder="请输入您的姓名" class="chinese-input"></el-input>
-      </el-form-item>
-      
-      <el-form-item label="出生日期" prop="birthdate">
-        <el-date-picker v-model="form.birthdate" type="date" placeholder="选择出生日期" class="chinese-input" format="YYYY年MM月DD日" value-format="YYYY-MM-DD" :locale="zhCn"></el-date-picker>
-      </el-form-item>
-      
-      <el-form-item label="出生时辰" prop="birthHour">
-        <el-select v-model="form.birthHour" placeholder="请选择出生时辰" class="chinese-input">
-          <el-option label="子时 (23:00-1:00)" value="23"></el-option>
-          <el-option label="丑时 (1:00-3:00)" value="1"></el-option>
-          <el-option label="寅时 (3:00-5:00)" value="3"></el-option>
-          <el-option label="卯时 (5:00-7:00)" value="5"></el-option>
-          <el-option label="辰时 (7:00-9:00)" value="7"></el-option>
-          <el-option label="巳时 (9:00-11:00)" value="9"></el-option>
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="姓名" prop="name">
+            <el-input v-model="form.name" placeholder="请输入您的姓名" class="chinese-input enhanced-input"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="性别" prop="gender">
+            <el-radio-group v-model="form.gender">
+              <el-radio label="male">男</el-radio>
+              <el-radio label="female">女</el-radio>
+            </el-radio-group>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item label="出生日期" prop="birthdate">
+            <el-date-picker v-model="form.birthdate" type="date" placeholder="选择出生日期" class="chinese-input enhanced-input" format="YYYY年MM月DD日" value-format="YYYY-MM-DD" :locale="zhCn"></el-date-picker>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="出生时间" prop="birthTime">
+            <el-time-picker v-model="form.birthTime" placeholder="选择出生时间" class="chinese-input enhanced-input" format="HH:mm" value-format="HH:mm"></el-time-picker>
+          </el-form-item>
+        </el-col>
+      </el-row>
           <el-option label="午时 (11:00-13:00)" value="11"></el-option>
           <el-option label="未时 (13:00-15:00)" value="13"></el-option>
           <el-option label="申时 (15:00-17:00)" value="15"></el-option>
@@ -56,8 +68,10 @@ const formRef = ref(null)
 
 const form = reactive({
   name: '',
-  birthdate: '',
-  birthHour: '',
+  birthYear: '',
+  birthMonth: '',
+  birthDay: '',
+  birthTime: '',
   gender: ''
 })
 
