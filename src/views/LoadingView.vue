@@ -23,6 +23,14 @@ const route = useRoute()
 const progress = ref(0)
 const loadingMessage = ref('正在准备您的个性化运势预测...')
 
+const messages = [
+  '正在准备您的个性化运势预测...',
+  '正在解析生辰八字...',
+  '正在分析五行属性...',
+  '正在生成运势预测...',
+  '预测完成，即将为您展示结果...'
+]
+
 const calculateWithProgress = async () => {
   try {
     const { name, birthdate, birthHour, gender } = route.query
@@ -34,26 +42,19 @@ const calculateWithProgress = async () => {
     }
     
     // 更新进度和消息
-    progress.value = 20
-    loadingMessage.value = '正在解析生辰八字...'
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    // 计算生辰八字
-    const baZiInfo = calculateBaZi(new Date(birthdate), parseInt(birthHour))
-    
-    progress.value = 50
-    loadingMessage.value = '正在分析五行属性...'
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    // 分析五行
-    const wuXingAnalysis = analyzeWuXing(baZiInfo)
-    
-    progress.value = 80
-    loadingMessage.value = '正在生成运势预测...'
-    await new Promise(resolve => setTimeout(resolve, 800))
-    
-    progress.value = 100
-    loadingMessage.value = '预测完成，即将为您展示结果...'
+    for (let i = 0; i < messages.length; i++) {
+      progress.value = (i + 1) * 20
+      loadingMessage.value = messages[i]
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      if (i === 1) {
+        // 计算生辰八字
+        const baZiInfo = calculateBaZi(new Date(birthdate), parseInt(birthHour))
+      } else if (i === 2) {
+        // 分析五行
+        const wuXingAnalysis = analyzeWuXing(baZiInfo)
+      }
+    }
     
     // 等待进度条动画完成
     setTimeout(() => {

@@ -3,8 +3,10 @@
     <div class="chinese-pattern-top"></div>
     <h1 class="chinese-title">运势预测</h1>
     <p class="welcome-text">欢迎来到我们的运势预测网站。请输入您的基本信息，我们将为您生成个性化的运势预测。</p>
+    <div class="form-wrapper">
+      <div class="form-card">
     
-    <el-form :model="form" :rules="rules" ref="formRef" label-width="100px" class="fortune-form">
+    <el-form :model="form" :rules="rules" ref="formRef" label-width="120px" class="fortune-form" size="large">
       <el-row :gutter="20">
         <el-col :span="12">
           <el-form-item label="姓名" prop="name">
@@ -50,9 +52,11 @@
       </el-form-item>
       
       <el-form-item>
-        <el-button type="primary" @click="submitForm" class="submit-btn">开始测算</el-button>
+        <el-button type="primary" @click="submitForm" class="submit-btn" :loading="loading">开始测算</el-button>
       </el-form-item>
     </el-form>
+      </div>
+    </div>
     <div class="chinese-pattern-bottom"></div>
   </div>
 </template>
@@ -68,45 +72,66 @@ const formRef = ref(null)
 
 const form = reactive({
   name: '',
-  birthYear: '',
-  birthMonth: '',
-  birthDay: '',
+  birthdate: '',
   birthTime: '',
   gender: ''
 })
 
+const loading = ref(false)
+
 const rules = {
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  birthdate: [{ type: 'date', required: true, message: '请选择出生日期', trigger: 'change' }],
-  birthHour: [{ required: true, message: '请选择出生时辰', trigger: 'change' }],
+  birthdate: [{ required: true, message: '请选择出生日期', trigger: 'change' }],
+  birthTime: [{ required: true, message: '请选择出生时间', trigger: 'change' }],
   gender: [{ required: true, message: '请选择性别', trigger: 'change' }]
 }
 
-const submitForm = () => {
-  formRef.value.validate((valid) => {
-    if (valid) {
-      const formData = {
-        name: form.name,
-        birthdate: form.birthdate,
-        birthHour: form.birthHour,
-        gender: form.gender
-      }
-      
-      router.push({
-        path: '/loading',
-        query: formData
-      })
-      ElMessage.success('信息提交成功，正在为您测算...')
-    } else {
+const submitForm = async () => {
+  if (!formRef.value) return
+  
+  try {
+    loading.value = true
+    await formRef.value.validate()
+    
+    const formData = {
+      name: form.name,
+      birthdate: form.birthdate,
+      birthTime: form.birthTime,
+      gender: form.gender
+    }
+    
+    await router.push({
+      path: '/loading',
+      query: formData
+    })
+  } catch (error) {
+    ElMessage.error('请完整填写所有必填信息')
+  } finally {
+    loading.value = false
+  }
       ElMessage.error('请填写完整信息')
       return false
     }
   })
 }
+
+const validateForm = () => {
+  if (!form.name || !form.birthdate || !form.birthTime || !form.gender) {
+    ElMessage.error('请填写完整信息')
+    return false
+  }
+  return true
+}
 </script>
 
 <style scoped>
 .home-container {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   max-width: 600px;
   margin: 40px auto;
   padding: 40px 20px;
@@ -130,6 +155,22 @@ const submitForm = () => {
   background-size: 30px 30px;
   opacity: 0.3;
   z-index: 1;
+}
+
+.form-wrapper {
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.form-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .chinese-title {
@@ -162,22 +203,26 @@ const submitForm = () => {
 }
 
 .fortune-form {
-  background: rgba(30, 25, 44, 0.8);
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(157, 80, 187, 0.2);
+  background: rgba(30, 25, 44, 0.9);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(157, 80, 187, 0.3);
   position: relative;
   z-index: 2;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(15px);
+  border: 2px solid rgba(74, 0, 224, 0.2);
 }
 
 .chinese-input :deep(.el-input__inner),
 .chinese-input :deep(.el-input__wrapper) {
-  border-color: #4a00e0;
-  background-color: rgba(26, 26, 46, 0.6);
+  border: 2px solid #4a00e0;
+  background-color: rgba(26, 26, 46, 0.8);
   border-radius: 8px;
   font-family: 'STXihei', sans-serif;
   color: #fff;
+  font-size: 1.1em;
+  padding: 12px;
+  box-shadow: 0 0 10px rgba(74, 0, 224, 0.2);
 }
 
 .chinese-input :deep(.el-input__inner:focus),
@@ -187,8 +232,23 @@ const submitForm = () => {
 }
 
 .chinese-radio :deep(.el-radio__label) {
-  color: #a0a0c0;
+  color: #ffffff;
   font-family: 'STXihei', sans-serif;
+  font-size: 1.1em;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.chinese-radio :deep(.el-radio__input.is-checked .el-radio__inner) {
+  background-color: #4a00e0;
+  border-color: #4a00e0;
+  box-shadow: 0 0 10px rgba(74, 0, 224, 0.3);
+}
+
+:deep(.el-form-item__label) {
+  color: #ffffff;
+  font-size: 1.1em;
+  font-weight: 500;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
 .submit-btn {
