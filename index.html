@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=375,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>八字运势分析</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -28,6 +28,60 @@ animation: gradient 15s ease infinite;
 color: #fff;
 position: relative;
 }
+
+/* 添加响应式样式 */
+@media screen and (max-width: 380px) {
+  .mystical-card {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .grid.grid-cols-5 {
+    gap: 0.5rem;
+  }
+  
+  .w-12 {
+    width: 2.5rem;
+  }
+  
+  .h-12 {
+    height: 2.5rem;
+  }
+  
+  .text-lg {
+    font-size: 1rem;
+  }
+}
+
+/* 优化导航栏在小屏幕上的显示 */
+@media screen and (max-width: 360px) {
+  .golden-nav .px-12 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  
+  .nav-item .text-xs {
+    font-size: 0.65rem;
+  }
+}
+
+/* 确保内容不会被底部导航遮挡 */
+main {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom, 1rem));
+}
+
+/* 适配刘海屏 */
+.golden-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* 优化图表在小屏幕上的显示 */
+@media screen and (max-width: 380px) {
+  #chart {
+    height: 180px !important;
+  }
+}
+
 body::before {
 content: '';
 position: absolute;
@@ -173,452 +227,6 @@ animation: pulse 2s infinite;
 .compass-direction.east { right: 10px; top: 50%; transform: translateY(-50%); }
 .compass-direction.south { bottom: 10px; left: 50%; transform: translateX(-50%); }
 .compass-direction.west { left: 10px; top: 50%; transform: translateY(-50%); }
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-  100% {
-    background-position: 1000px 0;
-  }
-}
-.shimmer::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  animation: shimmer 3s infinite linear;
-}
-
-/* 金光闪烁效果 */
-@keyframes golden-glow {
-  0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), 0 0 30px rgba(255, 215, 0, 0.4) inset; }
-  100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
-}
-
-@keyframes golden-border {
-  0% { border-color: rgba(255, 215, 0, 0.3); }
-  50% { border-color: rgba(255, 215, 0, 0.8); }
-  100% { border-color: rgba(255, 215, 0, 0.3); }
-}
-
-.golden-nav {
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(20, 20, 20, 0.8));
-  border-top: 2px solid rgba(255, 215, 0, 0.5);
-  animation: golden-glow 3s infinite, golden-border 2s infinite;
-}
-
-.nav-item.active {
-  color: #FFD700;
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
-}
-
-.nav-item.active i {
-  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.7));
-}
-
-</style>
-</head>
-<body class="w-[375px] min-h-[762px] mx-auto relative">
-<nav class="fixed top-0 w-full bg-transparent text-white px-4 py-3 z-50 backdrop-blur-md border-b border-white/10">
-<div class="flex items-center justify-between">
-<div class="text-lg font-bold">八字运势</div>
-<div class="w-8 h-8 flex items-center justify-center">
-<i class="ri-settings-3-line text-xl"></i>
-</div>
-</div>
-</nav>
-
-<main class="pt-16 px-4 pb-20">
-<!-- 第一页：输入信息和结果页合并 -->
-<div id="input-page" class="page-transition page-visible">
-  <div class="mystical-card rounded-lg p-4 mb-4">
-    <div class="flex items-center justify-between mb-4">
-      <div class="text-sm text-white/60" id="current-date">二零二五年 三月 五日</div>
-      <div class="text-sm text-white/60" id="lunar-date">农历 乙巳年 二月初六</div>
-    </div>
-    <div class="grid grid-cols-2 gap-4 mb-4">
-      <input type="text" class="w-full px-3 py-2 bg-white/5 rounded text-sm text-white placeholder-white/50 border border-white/10" placeholder="姓名" id="name">
-      <select class="w-full px-3 py-2 bg-white/5 rounded text-sm text-white border border-white/10" id="gender">
-        <option value="male">男性</option>
-        <option value="female">女性</option>
-      </select>
-    </div>
-    <div class="mb-4">
-      <input type="date" class="date-picker w-full px-3 py-2 bg-white/5 rounded text-sm text-white border border-white/10" id="birthDate">
-    </div>
-    <div class="mb-4">
-      <select class="w-full px-3 py-2 bg-white/5 rounded text-sm text-white border border-white/10" id="birthTime">
-        <option value="">不清楚具体时间</option>
-        <option value="23:00">子时 (23:00-00:59)</option>
-        <option value="01:00">丑时 (01:00-02:59)</option>
-        <option value="03:00">寅时 (03:00-04:59)</option>
-        <option value="05:00">卯时 (05:00-06:59)</option>
-        <option value="07:00">辰时 (07:00-08:59)</option>
-        <option value="09:00">巳时 (09:00-10:59)</option>
-        <option value="11:00">午时 (11:00-12:59)</option>
-        <option value="13:00">未时 (13:00-14:59)</option>
-        <option value="15:00">申时 (15:00-16:59)</option>
-        <option value="17:00">酉时 (17:00-18:59)</option>
-        <option value="19:00">戌时 (19:00-20:59)</option>
-        <option value="21:00">亥时 (21:00-22:59)</option>
-      </select>
-    </div>
-    <button class="w-full bg-primary text-white py-3 rounded-button" onclick="analyze()">立即分析</button>
-  </div>
-  
-  <!-- 结果区域 - 默认显示 -->
-  <div id="result-section">
-    <div class="mystical-card rounded-lg p-4 mb-4">
-      <h3 class="text-lg font-medium mb-4">五行能量</h3>
-      <div class="grid grid-cols-5 gap-2 text-center">
-        <div class="p-2">
-          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#4CAF50]/20 rounded-full mb-2 energy-circle">
-            <i class="ri-plant-line text-[#4CAF50] text-xl"></i>
-          </div>
-          <div class="text-xs">木气 <span id="wood-energy">80%</span></div>
-        </div>
-        <div class="p-2">
-          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#F44336]/20 rounded-full mb-2">
-            <i class="ri-fire-line text-[#F44336] text-xl"></i>
-          </div>
-          <div class="text-xs">火气 <span id="fire-energy">60%</span></div>
-        </div>
-        <div class="p-2">
-          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#FFC107]/20 rounded-full mb-2">
-            <i class="ri-earth-line text-[#FFC107] text-xl"></i>
-          </div>
-          <div class="text-xs">土气 <span id="earth-energy">40%</span></div>
-        </div>
-        <div class="p-2">
-          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#FF9800]/20 rounded-full mb-2">
-            <i class="ri-coins-line text-[#FF9800] text-xl"></i>
-          </div>
-          <div class="text-xs">金气 <span id="metal-energy">30%</span></div>
-        </div>
-        <div class="p-2">
-          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#2196F3]/20 rounded-full mb-2">
-            <i class="ri-drop-line text-[#2196F3] text-xl"></i>
-          </div>
-          <div class="text-xs">水气 <span id="water-energy">50%</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="mystical-card rounded-lg p-4 mb-4">
-      <h3 class="text-lg font-medium mb-4">八字解读</h3>
-      <div class="mb-4">
-        <div class="grid grid-cols-4 gap-2 text-center mb-4">
-          <div class="p-2 bg-white/5 rounded">
-            <div class="text-sm">年柱</div>
-            <div class="text-lg font-medium" id="year-pillar">乙巳</div>
-          </div>
-          <div class="p-2 bg-white/5 rounded">
-            <div class="text-sm">月柱</div>
-            <div class="text-lg font-medium" id="month-pillar">庚寅</div>
-          </div>
-          <div class="p-2 bg-white/5 rounded">
-            <div class="text-sm">日柱</div>
-            <div class="text-lg font-medium" id="day-pillar">丁未</div>
-          </div>
-          <div class="p-2 bg-white/5 rounded">
-            <div class="text-sm">时柱</div>
-            <div class="text-lg font-medium" id="hour-pillar">甲子</div>
-          </div>
-        </div>
-      </div>
-      <div class="space-y-4">
-        <div class="p-3 bg-white/5 rounded-lg">
-          <div class="flex items-center mb-2">
-            <i class="ri-heart-pulse-line text-[#FF6B6B] mr-2"></i>
-            <span class="font-medium">健康运势</span>
-          </div>
-          <div class="flex items-center">
-            <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-              <div class="h-full bg-[#FF6B6B] rounded-full" id="health-bar" style="width: 85%"></div>
-            </div>
-            <span class="ml-3 text-sm" id="health-percentage">85%</span>
-          </div>
-          <p class="text-sm mt-2 text-white/70" id="health-text">体质偏阳，注意调节作息，适当运动。建议早睡早起，避免过度劳累。</p>
-        </div>
-        <div class="p-3 bg-white/5 rounded-lg">
-          <div class="flex items-center mb-2">
-            <i class="ri-money-cny-circle-line text-[#FFD93D] mr-2"></i>
-            <span class="font-medium">财富运势</span>
-          </div>
-          <div class="flex items-center">
-            <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-              <div class="h-full bg-[#FFD93D] rounded-full" id="wealth-bar" style="width: 75%"></div>
-            </div>
-            <span class="ml-3 text-sm" id="wealth-percentage">75%</span>
-          </div>
-          <p class="text-sm mt-2 text-white/70" id="wealth-text">财运稳定上升，适合投资理财。本月有意外收获，但需谨慎决策。</p>
-        </div>
-        <div class="p-3 bg-white/5 rounded-lg">
-          <div class="flex items-center mb-2">
-            <i class="ri-heart-3-line text-[#FF9F9F] mr-2"></i>
-            <span class="font-medium">桃花运势</span>
-          </div>
-          <div class="flex items-center">
-            <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-              <div class="h-full bg-[#FF9F9F] rounded-full" id="love-bar" style="width: 90%"></div>
-            </div>
-            <span class="ml-3 text-sm" id="love-percentage">90%</span>
-          </div>
-          <p class="text-sm mt-2 text-white/70" id="love-text">桃花运旺盛，易受异性青睐。已婚者婚姻和睦，单身者容易遇到心仪对象。</p>
-        </div>
-      </div>
-      <h3 class="text-lg font-medium my-4">运势走势</h3>
-      <div id="chart" style="width:100%;height:200px;"></div>
-    </div>
-    <div class="mystical-card rounded-lg p-4 mb-4" id="report-content">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-medium">运势报告</h3>
-        <button onclick="saveReport()" class="px-4 py-2 bg-primary/20 hover:bg-primary/30 transition-colors rounded-button flex items-center">
-          <i class="ri-download-line mr-2"></i>
-          <span>保存报告</span>
-        </button>
-      </div>
-      <div class="text-sm text-white/70">
-        <p class="leading-relaxed" id="fortune-summary">根据您的八字分析，近期运势呈上升趋势。建议把握机会，保持积极心态。重要决策宜在午时进行，可获得更好的结果。</p>
-        <div class="mt-4 p-3 bg-white/5 rounded-lg relative overflow-hidden shimmer">
-        <div class="flex items-center mb-2">
-        <i class="ri-star-line text-yellow-400 mr-2"></i>
-        <span class="font-medium">今日宜</span>
-        </div>
-        <p id="suitable-today">谈判、签约、投资、求职</p>
-        </div>
-        <div class="mt-4 p-3 bg-white/5 rounded-lg relative overflow-hidden shimmer">
-        <div class="flex items-center mb-2">
-        <i class="ri-error-warning-line text-red-400 mr-2"></i>
-        <span class="font-medium">今日忌</span>
-        </div>
-        <p id="unsuitable-today">搬家、装修、远行、开业</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-
-<!-- 日历页面 -->
-<div id="calendar-page" class="page-transition page-hidden">
-  <div class="mystical-card rounded-lg p-4 mb-4">
-    <h3 class="text-lg font-medium mb-4">农历日历</h3>
-    <div class="grid grid-cols-7 gap-1 text-center mb-2">
-      <div class="text-xs text-white/60">日</div>
-      <div class="text-xs text-white/60">一</div>
-      <div class="text-xs text-white/60">二</div>
-      <div class="text-xs text-white/60">三</div>
-      <div class="text-xs text-white/60">四</div>
-      <div class="text-xs text-white/60">五</div>
-      <div class="text-xs text-white/60">六</div>
-    </div>
-    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center">
-      <!-- 日历内容将通过JS动态生成 -->
-    </div>
-  </div>
-  <div class="mystical-card rounded-lg p-4 mb-4" id="day-details">
-    <h3 class="text-lg font-medium mb-4">今日详情</h3>
-    <div class="flex justify-between mb-3">
-      <div class="text-sm">公历：<span id="solar-date">2025年3月5日</span></div>
-      <div class="text-sm">农历：<span id="lunar-date-detail">乙巳年二月初六</span></div>
-    </div>
-    <div class="grid grid-cols-2 gap-4 mb-4">
-      <div class="p-3 bg-white/5 rounded-lg">
-        <div class="flex items-center mb-2">
-          <i class="ri-star-line text-yellow-400 mr-2"></i>
-          <span class="font-medium">今日宜</span>
-        </div>
-        <div class="text-sm text-white/70" id="suitable-activities">
-          <p>祭祀、出行、会友、谈判</p>
-          <p>求职、签约、开业、搬家</p>
-          <p>结婚、装修、入宅、动土</p>
-        </div>
-      </div>
-      <div class="p-3 bg-white/5 rounded-lg">
-        <div class="flex items-center mb-2">
-          <i class="ri-error-warning-line text-red-400 mr-2"></i>
-          <span class="font-medium">今日忌</span>
-        </div>
-        <div class="text-sm text-white/70" id="unsuitable-activities">
-          <p>诉讼、争执、远行、赌博</p>
-          <p>手术、剃头、乘船、探病</p>
-          <p>借贷、赊欠、饮酒、开仓</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 罗盘页面 -->
-<div id="compass-page" class="page-transition page-hidden">
-  <div class="mystical-card rounded-lg p-4 mb-4">
-    <h3 class="text-lg font-medium mb-4 text-center">风水罗盘</h3>
-    <div class="compass">
-      <div class="compass-bg">
-        <div class="compass-directions">
-          <div class="compass-direction north">北</div>
-          <div class="compass-direction east">东</div>
-          <div class="compass-direction south">南</div>
-          <div class="compass-direction west">西</div>
-        </div>
-        <div class="compass-needle" id="compass-needle"></div>
-        <div class="compass-center"></div>
-      </div>
-    </div>
-    <div class="text-center mt-4">
-      <p class="text-sm text-white/70 mb-2">当前朝向：<span id="current-direction">正北</span></p>
-      <p class="text-sm text-white/70">吉位：东南、西北</p>
-    </div>
-  </div>
-  <div class="mystical-card rounded-lg p-4 mb-4">
-    <h3 class="text-lg font-medium mb-4">方位解析</h3>
-    <div class="space-y-3 text-sm text-white/70">
-      <p><span class="font-medium">东方：</span>青龙位，主生机与活力，适合放置绿色植物。</p>
-      <p><span class="font-medium">南方：</span>朱雀位，主名声与光明，适合放置照明或红色装饰。</p>
-      <p><span class="font-medium">西方：</span>白虎位，主金属与收敛，适合放置金属饰品。</p>
-      <p><span class="font-medium">北方：</span>玄武位，主智慧与沉稳，适合放置黑色或蓝色物品。</p>
-      <p><span class="font-medium">中央：</span>土位，主稳定与平衡，适合放置黄色或棕色物品。</p>
-    </div>
-  </div>
-</div>
-
-<!-- 个人页面 -->
-<div id="profile-page" class="page-transition page-hidden">
-  <div class="mystical-card rounded-lg p-4 mb-4">
-    <h3 class="text-lg font-medium mb-4">个人信息</h3>
-    <div class="flex items-center mb-6">
-      <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mr-4">
-        <i class="ri-user-line text-3xl"></i>
-      </div>
-      <div>
-        <div class="text-lg font-medium" id="profile-name">用户</div>
-        <div class="text-sm text-white/60">普通会员</div>
-      </div>
-    </div>
-    <div class="space-y-4">
-      <div class="p-3 bg-white/5 rounded-lg flex justify-between items-center">
-        <div class="flex items-center">
-          <i class="ri-history-line mr-2"></i>
-          <span>历史记录</span>
-        </div>
-        <i class="ri-arrow-right-s-line"></i>
-      </div>
-      <div class="p-3 bg-white/5 rounded-lg flex justify-between items-center">
-        <div class="flex items-center">
-          <i class="ri-settings-4-line mr-2"></i>
-          <span>设置</span>
-        </div>
-        <i class="ri-arrow-right-s-line"></i>
-      </div>
-      <div class="p-3 bg-white/5 rounded-lg flex justify-between items-center">
-        <div class="flex items-center">
-          <i class="ri-customer-service-2-line mr-2"></i>
-          <span>联系客服</span>
-        </div>
-        <i class="ri-arrow-right-s-line"></i>
-      </div>
-    </div>
-  </div>
-  <div class="mystical-card rounded-lg p-4 mb-4">
-    <h3 class="text-lg font-medium mb-4">我的报告</h3>
-    <div id="saved-reports" class="space-y-3">
-      <!-- 保存的报告将在这里显示 -->
-      <div class="text-sm text-white/60 text-center py-4">暂无保存的报告</div>
-    </div>
-  </div>
-</div>
-
-<!-- 修改调理页面内容 -->
-<div id="advice-page" class="page-transition page-hidden">
-  <div class="mystical-card rounded-lg p-4 mb-4">
-    <h3 class="text-lg font-medium mb-4">个性化调理建议</h3>
-    <div class="text-sm text-white/70 mb-4">
-      <p class="leading-relaxed">根据您的八字和运势分析，为您提供以下调理建议，仅供参考。调理需循序渐进，持之以恒。</p>
-    </div>
-    <div class="space-y-4">
-      <div class="p-3 bg-white/5 rounded-lg">
-        <div class="flex items-center mb-2">
-          <i class="ri-restaurant-line text-[#4CAF50] mr-2"></i>
-          <span class="font-medium">饮食调养</span>
-        </div>
-        <div class="mb-2 text-sm text-white/60">合理的饮食搭配可以帮助您调节身体状态</div>
-        <div id="diet-advice" class="text-sm text-white/70 space-y-2">
-          <!-- 饮食建议将通过JS动态生成 -->
-        </div>
-      </div>
-      
-      <div class="p-3 bg-white/5 rounded-lg">
-        <div class="flex items-center mb-2">
-          <i class="ri-time-line text-[#FF9800] mr-2"></i>
-          <span class="font-medium">生活作息</span>
-        </div>
-        <div class="mb-2 text-sm text-white/60">良好的作息习惯是健康的基础</div>
-        <div id="lifestyle-advice" class="text-sm text-white/70 space-y-2">
-          <!-- 生活作息建议将通过JS动态生成 -->
-        </div>
-      </div>
-      
-      <div class="p-3 bg-white/5 rounded-lg">
-        <div class="flex items-center mb-2">
-          <i class="ri-run-line text-[#2196F3] mr-2"></i>
-          <span class="font-medium">运动建议</span>
-        </div>
-        <div class="mb-2 text-sm text-white/60">适量运动可以提升身心健康</div>
-        <div id="exercise-advice" class="text-sm text-white/70 space-y-2">
-          <!-- 运动建议将通过JS动态生成 -->
-        </div>
-      </div>
-      
-      <div class="p-3 bg-white/5 rounded-lg">
-        <div class="flex items-center mb-2">
-          <i class="ri-mental-health-line text-[#9C27B0] mr-2"></i>
-          <span class="font-medium">心理调节</span>
-        </div>
-        <div class="mb-2 text-sm text-white/60">保持良好心态是快乐生活的关键</div>
-        <div id="mental-advice" class="text-sm text-white/70 space-y-2">
-          <!-- 心理调节建议将通过JS动态生成 -->
-        </div>
-      </div>
-
-      <div class="p-3 bg-white/5 rounded-lg">
-        <div class="flex items-center mb-2">
-          <i class="ri-calendar-todo-line text-[#FFD700] mr-2"></i>
-          <span class="font-medium">每日建议</span>
-        </div>
-        <div class="mb-2 text-sm text-white/60">根据今日运势提供的参考建议</div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <div class="text-sm text-white/60 mb-1">建议时段</div>
-            <div id="recommended-time" class="text-sm text-white/70">
-              活动：9:00-11:00<br>
-              休息：14:00-15:00<br>
-              运动：17:00-18:00
-            </div>
-          </div>
-          <div>
-            <div class="text-sm text-white/60 mb-1">注意事项</div>
-            <div id="daily-cautions" class="text-sm text-white/70">
-              适度饮水<br>
-              保持心情愉悦<br>
-              避免过度劳累
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-</main>
-<style>
 @keyframes shimmer {
   0% {
     background-position: -1000px 0;
@@ -2150,17 +1758,17 @@ document.addEventListener('DOMContentLoaded', () => {
 </body>
 <!-- 修改底部导航栏 -->
 <nav class="golden-nav fixed bottom-0 w-full h-16 z-50">
-  <div class="h-full flex justify-center items-center">
-    <div class="flex items-center space-x-20">
-      <a class="nav-item active text-primary flex flex-col items-center w-16" data-page="input-page">
+  <div class="max-w-[375px] mx-auto h-full">
+    <div class="h-full flex justify-between items-center px-12">
+      <a class="nav-item active text-primary flex flex-col items-center" data-page="input-page">
         <i class="ri-home-4-line text-xl"></i>
         <span class="text-xs mt-1">主页</span>
       </a>
-      <a class="nav-item text-white/70 flex flex-col items-center w-16" data-page="compass-page">
+      <a class="nav-item text-white/70 flex flex-col items-center" data-page="compass-page">
         <i class="ri-compass-3-line text-xl"></i>
         <span class="text-xs mt-1">罗盘</span>
       </a>
-      <a class="nav-item text-white/70 flex flex-col items-center w-16" data-page="advice-page">
+      <a class="nav-item text-white/70 flex flex-col items-center" data-page="advice-page">
         <i class="ri-heart-pulse-line text-xl"></i>
         <span class="text-xs mt-1">调理</span>
       </a>
