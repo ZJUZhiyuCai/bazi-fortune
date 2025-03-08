@@ -1,51 +1,2176 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>运势预测</title>
-    <link rel="stylesheet" href="./css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=375,initial-scale=1">
+<title>八字运势分析</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={theme:{extend:{colors:{primary:'#2D3142',secondary:'#BF3F3F'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}};
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+<!-- 添加html2canvas库用于保存图片 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- 添加jsPDF库用于生成PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- 添加农历计算脚本 -->
+<script src="js/lunar.js" defer></script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+background: linear-gradient(125deg, #000428 0%, #004e92 100%);
+background-size: 400% 400%;
+animation: gradient 15s ease infinite;
+color: #fff;
+position: relative;
+}
+body::before {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background:
+radial-gradient(circle at 20% 35%, rgba(76, 0, 255, 0.15) 0%, transparent 25%),
+radial-gradient(circle at 75% 44%, rgba(0, 255, 200, 0.15) 0%, transparent 30%),
+radial-gradient(circle at 5% 75%, rgba(255, 0, 150, 0.15) 0%, transparent 20%);
+pointer-events: none;
+}
+@keyframes gradient {
+0% { background-position: 0% 50%; }
+50% { background-position: 100% 50%; }
+100% { background-position: 0% 50%; }
+}
+/* 修复日期选择器问题 */
+.date-picker {
+  color-scheme: dark;
+}
+/* 修复选择框文字颜色问题 */
+select {
+  color-scheme: dark;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 16 16'%3e%3cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 12px 12px;
+  padding-right: 2rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+select option {
+  background-color: #2D3142;
+  color: white;
+}
+.mystical-card {
+background: rgba(255, 255, 255, 0.05);
+backdrop-filter: blur(10px);
+border: 1px solid rgba(255, 255, 255, 0.1);
+box-shadow:
+0 8px 32px 0 rgba(31, 38, 135, 0.37),
+inset 0 0 30px rgba(255, 255, 255, 0.05);
+}
+.energy-circle {
+position: relative;
+overflow: hidden;
+}
+.energy-circle::after {
+content: '';
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background: radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%);
+animation: pulse 2s infinite;
+}
+@keyframes pulse {
+0% { transform: scale(0.95); opacity: 0.5; }
+50% { transform: scale(1.05); opacity: 0.8; }
+100% { transform: scale(0.95); opacity: 0.5; }
+}
+/* 添加页面切换动画 */
+.page-transition {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  width: 100%;
+  /* 移除absolute定位 */
+  position: relative; 
+  /* 添加固定高度 */
+  min-height: calc(100vh - 4rem);
+  /* 添加底部内边距防止被导航遮挡 */
+  padding: 16px 0 80px; 
+}
+
+.page-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  /* 移除absolute定位 */
+  display: none;
+}
+
+.page-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  display: block;
+}
+/* 罗盘样式 */
+.compass {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  margin: 0 auto;
+}
+.compass-bg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.compass-center {
+  width: 20%;
+  height: 20%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+.compass-needle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 45%;
+  background: linear-gradient(to bottom, #FF6B6B 0%, transparent 100%);
+  transform-origin: bottom center;
+  transform: translate(-50%, -100%) rotate(0deg);
+  z-index: 1;
+  transition: transform 1s ease;
+}
+.compass-directions {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+.compass-direction {
+  position: absolute;
+  text-align: center;
+  width: 30px;
+  font-size: 14px;
+}
+.compass-direction.north { top: 10px; left: 50%; transform: translateX(-50%); }
+.compass-direction.east { right: 10px; top: 50%; transform: translateY(-50%); }
+.compass-direction.south { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.compass-direction.west { left: 10px; top: 50%; transform: translateY(-50%); }
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 3s infinite linear;
+}
+
+/* 金光闪烁效果 */
+@keyframes golden-glow {
+  0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), 0 0 30px rgba(255, 215, 0, 0.4) inset; }
+  100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+}
+
+@keyframes golden-border {
+  0% { border-color: rgba(255, 215, 0, 0.3); }
+  50% { border-color: rgba(255, 215, 0, 0.8); }
+  100% { border-color: rgba(255, 215, 0, 0.3); }
+}
+
+.golden-nav {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(20, 20, 20, 0.8));
+  border-top: 2px solid rgba(255, 215, 0, 0.5);
+  animation: golden-glow 3s infinite, golden-border 2s infinite;
+}
+
+.nav-item.active {
+  color: #FFD700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
+}
+
+.nav-item.active i {
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.7));
+}
+
+</style>
 </head>
-<body>
-    <div class="container">
-        <div class="chinese-pattern-top"></div>
-        <div class="header">
-            <h1 class="chinese-title">运势预测</h1>
-            <p class="welcome-text">基于您的生辰八字，为您预测2024年运势</p>
-        </div>
-        
-        <div class="form-container">
-            <form id="birthForm">
-                <div class="form-group">
-                    <label for="name">姓名</label>
-                    <input type="text" id="name" required placeholder="请输入您的姓名" class="form-input">
-                </div>
+<body class="w-[375px] min-h-[762px] mx-auto relative">
+<nav class="fixed top-0 w-full bg-transparent text-white px-4 py-3 z-50 backdrop-blur-md border-b border-white/10">
+<div class="flex items-center justify-between">
+<div class="text-lg font-bold">八字运势</div>
+<div class="w-8 h-8 flex items-center justify-center">
+<i class="ri-settings-3-line text-xl"></i>
+</div>
+</div>
+</nav>
 
-                <div class="form-group">
-                    <label for="gender">性别</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="gender" value="male" required>
-                            <span>男</span>
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="gender" value="female">
-                            <span>女</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="birthDateTime">出生日期和时间</label>
-                    <input type="datetime-local" id="birthDateTime" required class="form-input">
-                </div>
-                
-                <button type="submit" class="submit-btn">开始测算</button>
-            </form>
-        </div>
-        <div class="chinese-pattern-bottom"></div>
+<main class="pt-16 px-4 pb-20">
+<!-- 第一页：输入信息和结果页合并 -->
+<div id="input-page" class="page-transition page-visible">
+  <div class="mystical-card rounded-lg p-4 mb-4">
+    <div class="flex items-center justify-between mb-4">
+      <div class="text-sm text-white/60" id="current-date">二零二五年 三月 五日</div>
+      <div class="text-sm text-white/60" id="lunar-date">农历 乙巳年 二月初六</div>
     </div>
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <input type="text" class="w-full px-3 py-2 bg-white/5 rounded text-sm text-white placeholder-white/50 border border-white/10" placeholder="姓名" id="name">
+      <select class="w-full px-3 py-2 bg-white/5 rounded text-sm text-white border border-white/10" id="gender">
+        <option value="male">男性</option>
+        <option value="female">女性</option>
+      </select>
+    </div>
+    <div class="mb-4">
+      <input type="date" class="date-picker w-full px-3 py-2 bg-white/5 rounded text-sm text-white border border-white/10" id="birthDate">
+    </div>
+    <div class="mb-4">
+      <select class="w-full px-3 py-2 bg-white/5 rounded text-sm text-white border border-white/10" id="birthTime">
+        <option value="">不清楚具体时间</option>
+        <option value="23:00">子时 (23:00-00:59)</option>
+        <option value="01:00">丑时 (01:00-02:59)</option>
+        <option value="03:00">寅时 (03:00-04:59)</option>
+        <option value="05:00">卯时 (05:00-06:59)</option>
+        <option value="07:00">辰时 (07:00-08:59)</option>
+        <option value="09:00">巳时 (09:00-10:59)</option>
+        <option value="11:00">午时 (11:00-12:59)</option>
+        <option value="13:00">未时 (13:00-14:59)</option>
+        <option value="15:00">申时 (15:00-16:59)</option>
+        <option value="17:00">酉时 (17:00-18:59)</option>
+        <option value="19:00">戌时 (19:00-20:59)</option>
+        <option value="21:00">亥时 (21:00-22:59)</option>
+      </select>
+    </div>
+    <button class="w-full bg-primary text-white py-3 rounded-button" onclick="analyze()">立即分析</button>
+  </div>
+  
+  <!-- 结果区域 - 默认显示 -->
+  <div id="result-section">
+    <div class="mystical-card rounded-lg p-4 mb-4">
+      <h3 class="text-lg font-medium mb-4">五行能量</h3>
+      <div class="grid grid-cols-5 gap-2 text-center">
+        <div class="p-2">
+          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#4CAF50]/20 rounded-full mb-2 energy-circle">
+            <i class="ri-plant-line text-[#4CAF50] text-xl"></i>
+          </div>
+          <div class="text-xs">木气 <span id="wood-energy">80%</span></div>
+        </div>
+        <div class="p-2">
+          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#F44336]/20 rounded-full mb-2">
+            <i class="ri-fire-line text-[#F44336] text-xl"></i>
+          </div>
+          <div class="text-xs">火气 <span id="fire-energy">60%</span></div>
+        </div>
+        <div class="p-2">
+          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#FFC107]/20 rounded-full mb-2">
+            <i class="ri-earth-line text-[#FFC107] text-xl"></i>
+          </div>
+          <div class="text-xs">土气 <span id="earth-energy">40%</span></div>
+        </div>
+        <div class="p-2">
+          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#FF9800]/20 rounded-full mb-2">
+            <i class="ri-coins-line text-[#FF9800] text-xl"></i>
+          </div>
+          <div class="text-xs">金气 <span id="metal-energy">30%</span></div>
+        </div>
+        <div class="p-2">
+          <div class="w-12 h-12 mx-auto flex items-center justify-center bg-[#2196F3]/20 rounded-full mb-2">
+            <i class="ri-drop-line text-[#2196F3] text-xl"></i>
+          </div>
+          <div class="text-xs">水气 <span id="water-energy">50%</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="mystical-card rounded-lg p-4 mb-4">
+      <h3 class="text-lg font-medium mb-4">八字解读</h3>
+      <div class="mb-4">
+        <div class="grid grid-cols-4 gap-2 text-center mb-4">
+          <div class="p-2 bg-white/5 rounded">
+            <div class="text-sm">年柱</div>
+            <div class="text-lg font-medium" id="year-pillar">乙巳</div>
+          </div>
+          <div class="p-2 bg-white/5 rounded">
+            <div class="text-sm">月柱</div>
+            <div class="text-lg font-medium" id="month-pillar">庚寅</div>
+          </div>
+          <div class="p-2 bg-white/5 rounded">
+            <div class="text-sm">日柱</div>
+            <div class="text-lg font-medium" id="day-pillar">丁未</div>
+          </div>
+          <div class="p-2 bg-white/5 rounded">
+            <div class="text-sm">时柱</div>
+            <div class="text-lg font-medium" id="hour-pillar">甲子</div>
+          </div>
+        </div>
+      </div>
+      <div class="space-y-4">
+        <div class="p-3 bg-white/5 rounded-lg">
+          <div class="flex items-center mb-2">
+            <i class="ri-heart-pulse-line text-[#FF6B6B] mr-2"></i>
+            <span class="font-medium">健康运势</span>
+          </div>
+          <div class="flex items-center">
+            <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div class="h-full bg-[#FF6B6B] rounded-full" id="health-bar" style="width: 85%"></div>
+            </div>
+            <span class="ml-3 text-sm" id="health-percentage">85%</span>
+          </div>
+          <p class="text-sm mt-2 text-white/70" id="health-text">体质偏阳，注意调节作息，适当运动。建议早睡早起，避免过度劳累。</p>
+        </div>
+        <div class="p-3 bg-white/5 rounded-lg">
+          <div class="flex items-center mb-2">
+            <i class="ri-money-cny-circle-line text-[#FFD93D] mr-2"></i>
+            <span class="font-medium">财富运势</span>
+          </div>
+          <div class="flex items-center">
+            <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div class="h-full bg-[#FFD93D] rounded-full" id="wealth-bar" style="width: 75%"></div>
+            </div>
+            <span class="ml-3 text-sm" id="wealth-percentage">75%</span>
+          </div>
+          <p class="text-sm mt-2 text-white/70" id="wealth-text">财运稳定上升，适合投资理财。本月有意外收获，但需谨慎决策。</p>
+        </div>
+        <div class="p-3 bg-white/5 rounded-lg">
+          <div class="flex items-center mb-2">
+            <i class="ri-heart-3-line text-[#FF9F9F] mr-2"></i>
+            <span class="font-medium">桃花运势</span>
+          </div>
+          <div class="flex items-center">
+            <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div class="h-full bg-[#FF9F9F] rounded-full" id="love-bar" style="width: 90%"></div>
+            </div>
+            <span class="ml-3 text-sm" id="love-percentage">90%</span>
+          </div>
+          <p class="text-sm mt-2 text-white/70" id="love-text">桃花运旺盛，易受异性青睐。已婚者婚姻和睦，单身者容易遇到心仪对象。</p>
+        </div>
+      </div>
+      <h3 class="text-lg font-medium my-4">运势走势</h3>
+      <div id="chart" style="width:100%;height:200px;"></div>
+    </div>
+    <div class="mystical-card rounded-lg p-4 mb-4" id="report-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium">运势报告</h3>
+        <button onclick="saveReport()" class="px-4 py-2 bg-primary/20 hover:bg-primary/30 transition-colors rounded-button flex items-center">
+          <i class="ri-download-line mr-2"></i>
+          <span>保存报告</span>
+        </button>
+      </div>
+      <div class="text-sm text-white/70">
+        <p class="leading-relaxed" id="fortune-summary">根据您的八字分析，近期运势呈上升趋势。建议把握机会，保持积极心态。重要决策宜在午时进行，可获得更好的结果。</p>
+        <div class="mt-4 p-3 bg-white/5 rounded-lg relative overflow-hidden shimmer">
+        <div class="flex items-center mb-2">
+        <i class="ri-star-line text-yellow-400 mr-2"></i>
+        <span class="font-medium">今日宜</span>
+        </div>
+        <p id="suitable-today">谈判、签约、投资、求职</p>
+        </div>
+        <div class="mt-4 p-3 bg-white/5 rounded-lg relative overflow-hidden shimmer">
+        <div class="flex items-center mb-2">
+        <i class="ri-error-warning-line text-red-400 mr-2"></i>
+        <span class="font-medium">今日忌</span>
+        </div>
+        <p id="unsuitable-today">搬家、装修、远行、开业</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
 
-    <script src="./js/main.js"></script>
+<!-- 日历页面 -->
+<div id="calendar-page" class="page-transition page-hidden">
+  <div class="mystical-card rounded-lg p-4 mb-4">
+    <h3 class="text-lg font-medium mb-4">农历日历</h3>
+    <div class="grid grid-cols-7 gap-1 text-center mb-2">
+      <div class="text-xs text-white/60">日</div>
+      <div class="text-xs text-white/60">一</div>
+      <div class="text-xs text-white/60">二</div>
+      <div class="text-xs text-white/60">三</div>
+      <div class="text-xs text-white/60">四</div>
+      <div class="text-xs text-white/60">五</div>
+      <div class="text-xs text-white/60">六</div>
+    </div>
+    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center">
+      <!-- 日历内容将通过JS动态生成 -->
+    </div>
+  </div>
+  <div class="mystical-card rounded-lg p-4 mb-4" id="day-details">
+    <h3 class="text-lg font-medium mb-4">今日详情</h3>
+    <div class="flex justify-between mb-3">
+      <div class="text-sm">公历：<span id="solar-date">2025年3月5日</span></div>
+      <div class="text-sm">农历：<span id="lunar-date-detail">乙巳年二月初六</span></div>
+    </div>
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div class="p-3 bg-white/5 rounded-lg">
+        <div class="flex items-center mb-2">
+          <i class="ri-star-line text-yellow-400 mr-2"></i>
+          <span class="font-medium">今日宜</span>
+        </div>
+        <div class="text-sm text-white/70" id="suitable-activities">
+          <p>祭祀、出行、会友、谈判</p>
+          <p>求职、签约、开业、搬家</p>
+          <p>结婚、装修、入宅、动土</p>
+        </div>
+      </div>
+      <div class="p-3 bg-white/5 rounded-lg">
+        <div class="flex items-center mb-2">
+          <i class="ri-error-warning-line text-red-400 mr-2"></i>
+          <span class="font-medium">今日忌</span>
+        </div>
+        <div class="text-sm text-white/70" id="unsuitable-activities">
+          <p>诉讼、争执、远行、赌博</p>
+          <p>手术、剃头、乘船、探病</p>
+          <p>借贷、赊欠、饮酒、开仓</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 罗盘页面 -->
+<div id="compass-page" class="page-transition page-hidden">
+  <div class="mystical-card rounded-lg p-4 mb-4">
+    <h3 class="text-lg font-medium mb-4 text-center">风水罗盘</h3>
+    <div class="compass">
+      <div class="compass-bg">
+        <div class="compass-directions">
+          <div class="compass-direction north">北</div>
+          <div class="compass-direction east">东</div>
+          <div class="compass-direction south">南</div>
+          <div class="compass-direction west">西</div>
+        </div>
+        <div class="compass-needle" id="compass-needle"></div>
+        <div class="compass-center"></div>
+      </div>
+    </div>
+    <div class="text-center mt-4">
+      <p class="text-sm text-white/70 mb-2">当前朝向：<span id="current-direction">正北</span></p>
+      <p class="text-sm text-white/70">吉位：东南、西北</p>
+    </div>
+  </div>
+  <div class="mystical-card rounded-lg p-4 mb-4">
+    <h3 class="text-lg font-medium mb-4">方位解析</h3>
+    <div class="space-y-3 text-sm text-white/70">
+      <p><span class="font-medium">东方：</span>青龙位，主生机与活力，适合放置绿色植物。</p>
+      <p><span class="font-medium">南方：</span>朱雀位，主名声与光明，适合放置照明或红色装饰。</p>
+      <p><span class="font-medium">西方：</span>白虎位，主金属与收敛，适合放置金属饰品。</p>
+      <p><span class="font-medium">北方：</span>玄武位，主智慧与沉稳，适合放置黑色或蓝色物品。</p>
+      <p><span class="font-medium">中央：</span>土位，主稳定与平衡，适合放置黄色或棕色物品。</p>
+    </div>
+  </div>
+</div>
+
+<!-- 个人页面 -->
+<div id="profile-page" class="page-transition page-hidden">
+  <div class="mystical-card rounded-lg p-4 mb-4">
+    <h3 class="text-lg font-medium mb-4">个人信息</h3>
+    <div class="flex items-center mb-6">
+      <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mr-4">
+        <i class="ri-user-line text-3xl"></i>
+      </div>
+      <div>
+        <div class="text-lg font-medium" id="profile-name">用户</div>
+        <div class="text-sm text-white/60">普通会员</div>
+      </div>
+    </div>
+    <div class="space-y-4">
+      <div class="p-3 bg-white/5 rounded-lg flex justify-between items-center">
+        <div class="flex items-center">
+          <i class="ri-history-line mr-2"></i>
+          <span>历史记录</span>
+        </div>
+        <i class="ri-arrow-right-s-line"></i>
+      </div>
+      <div class="p-3 bg-white/5 rounded-lg flex justify-between items-center">
+        <div class="flex items-center">
+          <i class="ri-settings-4-line mr-2"></i>
+          <span>设置</span>
+        </div>
+        <i class="ri-arrow-right-s-line"></i>
+      </div>
+      <div class="p-3 bg-white/5 rounded-lg flex justify-between items-center">
+        <div class="flex items-center">
+          <i class="ri-customer-service-2-line mr-2"></i>
+          <span>联系客服</span>
+        </div>
+        <i class="ri-arrow-right-s-line"></i>
+      </div>
+    </div>
+  </div>
+  <div class="mystical-card rounded-lg p-4 mb-4">
+    <h3 class="text-lg font-medium mb-4">我的报告</h3>
+    <div id="saved-reports" class="space-y-3">
+      <!-- 保存的报告将在这里显示 -->
+      <div class="text-sm text-white/60 text-center py-4">暂无保存的报告</div>
+    </div>
+  </div>
+</div>
+
+<!-- 修改调理页面内容 -->
+<div id="advice-page" class="page-transition page-hidden">
+  <div class="mystical-card rounded-lg p-4 mb-4">
+    <h3 class="text-lg font-medium mb-4">个性化调理建议</h3>
+    <div class="text-sm text-white/70 mb-4">
+      <p class="leading-relaxed">根据您的八字和运势分析，为您提供以下调理建议，仅供参考。调理需循序渐进，持之以恒。</p>
+    </div>
+    <div class="space-y-4">
+      <div class="p-3 bg-white/5 rounded-lg">
+        <div class="flex items-center mb-2">
+          <i class="ri-restaurant-line text-[#4CAF50] mr-2"></i>
+          <span class="font-medium">饮食调养</span>
+        </div>
+        <div class="mb-2 text-sm text-white/60">合理的饮食搭配可以帮助您调节身体状态</div>
+        <div id="diet-advice" class="text-sm text-white/70 space-y-2">
+          <!-- 饮食建议将通过JS动态生成 -->
+        </div>
+      </div>
+      
+      <div class="p-3 bg-white/5 rounded-lg">
+        <div class="flex items-center mb-2">
+          <i class="ri-time-line text-[#FF9800] mr-2"></i>
+          <span class="font-medium">生活作息</span>
+        </div>
+        <div class="mb-2 text-sm text-white/60">良好的作息习惯是健康的基础</div>
+        <div id="lifestyle-advice" class="text-sm text-white/70 space-y-2">
+          <!-- 生活作息建议将通过JS动态生成 -->
+        </div>
+      </div>
+      
+      <div class="p-3 bg-white/5 rounded-lg">
+        <div class="flex items-center mb-2">
+          <i class="ri-run-line text-[#2196F3] mr-2"></i>
+          <span class="font-medium">运动建议</span>
+        </div>
+        <div class="mb-2 text-sm text-white/60">适量运动可以提升身心健康</div>
+        <div id="exercise-advice" class="text-sm text-white/70 space-y-2">
+          <!-- 运动建议将通过JS动态生成 -->
+        </div>
+      </div>
+      
+      <div class="p-3 bg-white/5 rounded-lg">
+        <div class="flex items-center mb-2">
+          <i class="ri-mental-health-line text-[#9C27B0] mr-2"></i>
+          <span class="font-medium">心理调节</span>
+        </div>
+        <div class="mb-2 text-sm text-white/60">保持良好心态是快乐生活的关键</div>
+        <div id="mental-advice" class="text-sm text-white/70 space-y-2">
+          <!-- 心理调节建议将通过JS动态生成 -->
+        </div>
+      </div>
+
+      <div class="p-3 bg-white/5 rounded-lg">
+        <div class="flex items-center mb-2">
+          <i class="ri-calendar-todo-line text-[#FFD700] mr-2"></i>
+          <span class="font-medium">每日建议</span>
+        </div>
+        <div class="mb-2 text-sm text-white/60">根据今日运势提供的参考建议</div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="text-sm text-white/60 mb-1">建议时段</div>
+            <div id="recommended-time" class="text-sm text-white/70">
+              活动：9:00-11:00<br>
+              休息：14:00-15:00<br>
+              运动：17:00-18:00
+            </div>
+          </div>
+          <div>
+            <div class="text-sm text-white/60 mb-1">注意事项</div>
+            <div id="daily-cautions" class="text-sm text-white/70">
+              适度饮水<br>
+              保持心情愉悦<br>
+              避免过度劳累
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+<style>
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmer 3s infinite linear;
+}
+
+/* 金光闪烁效果 */
+@keyframes golden-glow {
+  0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), 0 0 30px rgba(255, 215, 0, 0.4) inset; }
+  100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.3); }
+}
+
+@keyframes golden-border {
+  0% { border-color: rgba(255, 215, 0, 0.3); }
+  50% { border-color: rgba(255, 215, 0, 0.8); }
+  100% { border-color: rgba(255, 215, 0, 0.3); }
+}
+
+.golden-nav {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(20, 20, 20, 0.8));
+  border-top: 2px solid rgba(255, 215, 0, 0.5);
+  animation: golden-glow 3s infinite, golden-border 2s infinite;
+}
+
+.nav-item.active {
+  color: #FFD700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.7);
+}
+
+.nav-item.active i {
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.7));
+}
+
+
+/* 添加导航和交互样式 */
+nav a {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.page-transition {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  width: 100%;
+  /* 移除absolute定位 */
+  position: relative; 
+  /* 添加固定高度 */
+  min-height: calc(100vh - 4rem);
+  /* 添加底部内边距防止被导航遮挡 */
+  padding: 16px 0 80px; 
+}
+
+.page-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
+  /* 使用display:none替代absolute定位 */
+  display: none;
+}
+
+.page-visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  display: block;
+}
+</style>
+<div id="loading-overlay" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center transition-opacity duration-300 opacity-0 pointer-events-none">
+  <div class="w-64 text-center">
+    <div class="relative h-2 bg-white/10 rounded-full overflow-hidden mb-3">
+      <div id="progress-bar" class="absolute left-0 top-0 h-full w-0 bg-gradient-to-r from-[#4CAF50] via-[#2196F3] to-[#4CAF50] rounded-full transition-all duration-300"></div>
+    </div>
+    <div class="text-white/80 text-sm">正在分析...</div>
+  </div>
+</div>
+
+<script>
+// 修改显示加载动画函数
+function showLoading() {
+  const overlay = document.getElementById('loading-overlay');
+  const progressBar = document.getElementById('progress-bar');
+  overlay.classList.remove('opacity-0', 'pointer-events-none');
+  
+  // 重置进度条
+  progressBar.style.width = '0%';
+  
+  // 模拟进度增长
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += 1;
+    if (progress <= 90) { // 只增长到90%，留下最后10%给实际完成时
+      progressBar.style.width = `${progress}%`;
+    }
+  }, 30);
+  
+  // 保存interval ID以便后续清除
+  overlay.dataset.intervalId = interval;
+}
+
+// 修改隐藏加载动画函数
+function hideLoading() {
+  const overlay = document.getElementById('loading-overlay');
+  const progressBar = document.getElementById('progress-bar');
+  
+  // 清除进度增长interval
+  if (overlay.dataset.intervalId) {
+    clearInterval(parseInt(overlay.dataset.intervalId));
+  }
+  
+  // 立即完成进度条
+  progressBar.style.width = '100%';
+  
+  // 等待进度条动画完成后隐藏遮罩
+  setTimeout(() => {
+    overlay.classList.add('opacity-0', 'pointer-events-none');
+    setTimeout(() => {
+      progressBar.style.width = '0%';
+    }, 300);
+  }, 300);
+}
+
+// 页面切换函数
+function switchPage(toPageId) {
+  // 隐藏所有页面
+  document.querySelectorAll('.page-transition').forEach(page => {
+    page.classList.add('page-hidden');
+    page.classList.remove('page-visible');
+  });
+  
+  // 显示目标页面
+  const toPage = document.getElementById(toPageId);
+  if (toPage) {
+    toPage.classList.remove('page-hidden');
+    toPage.classList.add('page-visible');
+    window.scrollTo(0, 0); // 滚动到顶部
+    
+    // 更新导航激活状态
+    document.querySelectorAll('.nav-item').forEach(item => {
+      if (item.dataset.page === toPageId) {
+        item.classList.add('active');
+        item.classList.add('text-primary');
+        item.classList.remove('text-white/70');
+      } else {
+        item.classList.remove('active');
+        item.classList.remove('text-primary');
+        item.classList.add('text-white/70');
+      }
+    });
+  }
+}
+
+// 添加 updateActivities 函数
+function updateActivities(date) {
+  // 获取宜忌事项的元素
+  const suitableEl = document.getElementById('suitable-today');
+  const unsuitableEl = document.getElementById('unsuitable-today');
+  
+  // 根据日期获取季节
+  const month = date.getMonth() + 1;
+  let season;
+  if (month >= 3 && month <= 5) season = 'spring';
+  else if (month >= 6 && month <= 8) season = 'summer';
+  else if (month >= 9 && month <= 11) season = 'autumn';
+  else season = 'winter';
+  
+  // 定义各季节的宜忌事项
+  const suitableActivities = {
+    spring: ['出行', '求财', '开业', '动土', '种植', '婚庆', '装修', '开工'],
+    summer: ['求财', '出行', '装修', '开业', '谈判', '签约', '婚庆', '动土'],
+    autumn: ['搬家', '装修', '开业', '谈判', '求财', '签约', '出行', '开工'],
+    winter: ['装修', '开业', '谈判', '求财', '签约', '学习', '开工', '动土']
+  };
+
+  const unsuitableActivities = {
+    spring: ['安葬', '诉讼', '手术', '动工', '开张', '搬迁', '结婚', '开市'],
+    summer: ['安葬', '诉讼', '手术', '搬迁', '开张', '动工', '结婚', '开市'],
+    autumn: ['安葬', '诉讼', '手术', '动工', '开张', '搬迁', '结婚', '开市'],
+    winter: ['安葬', '诉讼', '手术', '动工', '开张', '搬迁', '结婚', '开市']
+  };
+
+  // 根据日期选择4个宜忌事项
+  const dateIndex = date.getDate() % 5;
+  if (suitableEl) {
+    suitableEl.textContent = suitableActivities[season].slice(dateIndex, dateIndex + 4).join('、');
+  }
+  if (unsuitableEl) {
+    unsuitableEl.textContent = unsuitableActivities[season].slice(dateIndex, dateIndex + 4).join('、');
+  }
+}
+
+// 天干地支对应表
+const HEAVENLY_STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+const EARTHLY_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+
+// 五行属性对应表
+const FIVE_ELEMENTS = {
+  '甲': '木', '乙': '木',
+  '丙': '火', '丁': '火',
+  '戊': '土', '己': '土',
+  '庚': '金', '辛': '金',
+  '壬': '水', '癸': '水',
+  '子': '水', '丑': '土',
+  '寅': '木', '卯': '木',
+  '辰': '土', '巳': '火',
+  '午': '火', '未': '土',
+  '申': '金', '酉': '金',
+  '戌': '土', '亥': '水'
+};
+
+// 计算八字
+function calculateBaZi(birthDate, birthTime) {
+  const date = new Date(birthDate);
+  if(!date) return null;
+  
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hour = birthTime ? parseInt(birthTime.split(':')[0]) : 0;
+  
+  // 计算年柱
+  const yearStem = HEAVENLY_STEMS[(year - 4) % 10];
+  const yearBranch = EARTHLY_BRANCHES[(year - 4) % 12];
+  
+  // 计算月柱(需要考虑节气,这里简化处理)
+  const monthIndex = (year * 12 + month + 12) % 60;
+  const monthStem = HEAVENLY_STEMS[monthIndex % 10];
+  const monthBranch = EARTHLY_BRANCHES[month - 1];
+  
+  // 计算日柱(需要精确计算,这里简化处理)
+  const dayIndex = Math.floor((date - new Date(1900, 0, 1)) / (24 * 60 * 60 * 1000));
+  const dayStem = HEAVENLY_STEMS[dayIndex % 10];
+  const dayBranch = EARTHLY_BRANCHES[dayIndex % 12];
+  
+  // 计算时柱
+  const hourStem = HEAVENLY_STEMS[Math.floor(hour / 2) % 10];
+  const hourBranch = EARTHLY_BRANCHES[Math.floor(hour / 2) % 12];
+  
+  return {
+    year: yearStem + yearBranch,
+    month: monthStem + monthBranch,
+    day: dayStem + dayBranch,
+    hour: hourStem + hourBranch
+  };
+}
+
+// 计算五行能量
+function calculateFiveElements(baZi) {
+  const elements = {
+    '木': 0, '火': 0, '土': 0, '金': 0, '水': 0
+  };
+  
+  // 统计天干地支的五行
+  Object.values(baZi).forEach(pillar => {
+    const stem = pillar.charAt(0);
+    const branch = pillar.charAt(1);
+    
+    elements[FIVE_ELEMENTS[stem]]++;
+    elements[FIVE_ELEMENTS[branch]]++;
+  });
+  
+  // 计算百分比
+  const total = Object.values(elements).reduce((a, b) => a + b, 0);
+  Object.keys(elements).forEach(key => {
+    elements[key] = Math.round((elements[key] / total) * 100);
+  });
+  
+  return elements;
+}
+
+// 修改计算运势分数的函数
+function calculateFortune(baZi, elements, gender) {
+  const scores = {
+    health: 0,
+    wealth: 0,
+    love: 0
+  };
+  
+  // 基础分数计算(根据八字)
+  const baseScores = {
+    health: 70,
+    wealth: 70,
+    love: 70
+  };
+  
+  // 五行影响系数
+  const elementScores = {
+    '木': { health: 1.2, wealth: 0.8, love: 1.0 },
+    '火': { health: 1.0, wealth: 1.2, love: 1.2 },
+    '土': { health: 0.8, wealth: 1.0, love: 0.8 },
+    '金': { health: 1.0, wealth: 1.2, love: 0.8 },
+    '水': { health: 1.2, wealth: 0.8, love: 1.0 }
+  };
+  
+  // 计算五行对运势的影响
+  Object.entries(elements).forEach(([element, value]) => {
+    Object.keys(scores).forEach(aspect => {
+      scores[aspect] += baseScores[aspect] * elementScores[element][aspect] * (value / 100);
+    });
+  });
+  
+  // 性别影响系数
+  const genderFactors = {
+    male: {
+      health: 1.1,
+      wealth: 1.2,
+      love: 0.9
+    },
+    female: {
+      health: 1.2,
+      wealth: 0.9,
+      love: 1.1
+    }
+  };
+  
+  // 应用性别影响
+  Object.keys(scores).forEach(aspect => {
+    scores[aspect] *= genderFactors[gender][aspect];
+  });
+  
+  // 根据日柱调整分数
+  const dayStem = baZi.day.charAt(0);
+  const dayBranch = baZi.day.charAt(1);
+  
+  // 天干对运势的影响
+  const stemAdjustments = {
+    '甲': { health: 1.1, wealth: 0.9, love: 1.0 },
+    '乙': { health: 1.0, wealth: 1.0, love: 1.1 },
+    '丙': { health: 1.2, wealth: 0.8, love: 1.0 },
+    '丁': { health: 0.9, wealth: 1.1, love: 1.2 },
+    '戊': { health: 1.0, wealth: 1.0, love: 0.9 },
+    '己': { health: 0.9, wealth: 1.2, love: 1.0 },
+    '庚': { health: 1.1, wealth: 1.1, love: 0.8 },
+    '辛': { health: 1.0, wealth: 1.2, love: 0.9 },
+    '壬': { health: 1.2, wealth: 0.9, love: 1.0 },
+    '癸': { health: 0.9, wealth: 1.0, love: 1.2 }
+  };
+  
+  // 地支对运势的影响
+  const branchAdjustments = {
+    '子': { health: 1.1, wealth: 0.9, love: 1.0 },
+    '丑': { health: 0.9, wealth: 1.1, love: 0.9 },
+    '寅': { health: 1.2, wealth: 1.0, love: 0.8 },
+    '卯': { health: 1.0, wealth: 0.8, love: 1.2 },
+    '辰': { health: 0.8, wealth: 1.2, love: 1.0 },
+    '巳': { health: 1.1, wealth: 1.1, love: 0.9 },
+    '午': { health: 1.2, wealth: 0.9, love: 1.0 },
+    '未': { health: 0.9, wealth: 1.0, love: 1.2 },
+    '申': { health: 1.0, wealth: 1.2, love: 0.8 },
+    '酉': { health: 1.1, wealth: 1.0, love: 0.9 },
+    '戌': { health: 0.8, wealth: 1.1, love: 1.1 },
+    '亥': { health: 1.0, wealth: 0.9, love: 1.2 }
+  };
+  
+  // 应用天干地支调整
+  Object.keys(scores).forEach(aspect => {
+    scores[aspect] *= stemAdjustments[dayStem][aspect];
+    scores[aspect] *= branchAdjustments[dayBranch][aspect];
+  });
+  
+  // 归一化分数到60-95之间
+  Object.keys(scores).forEach(key => {
+    scores[key] = Math.round(Math.min(95, Math.max(60, scores[key])));
+  });
+  
+  return scores;
+}
+
+// 修改生成运势建议的函数
+function generateAdvice(scores, elements, gender) {
+  const advice = {
+    health: [],
+    wealth: [],
+    love: []
+  };
+  
+  // 健康建议
+  if (scores.health >= 85) {
+    advice.health.push(gender === 'male' ? 
+      '体质阳刚充沛，可适当增加运动强度' :
+      '体质阴阳调和，建议保持规律运动');
+  } else if (scores.health >= 70) {
+    advice.health.push('身体状况良好，注意作息规律');
+  } else {
+    advice.health.push(gender === 'male' ?
+      '阳气略显不足，建议加强锻炼' :
+      '气血需要调养，建议适度运动');
+  }
+  
+  // 财运建议
+  if (scores.wealth >= 85) {
+    advice.wealth.push(gender === 'male' ?
+      '财运旺盛，适合大胆投资' :
+      '财运良好，适合稳健理财');
+  } else if (scores.wealth >= 70) {
+    advice.wealth.push('财运平稳，宜守不宜进');
+  } else {
+    advice.wealth.push(gender === 'male' ?
+      '财运欠佳，需谨慎投资' :
+      '财运平平，宜储蓄为主');
+  }
+  
+  // 感情建议
+  if (scores.love >= 85) {
+    advice.love.push(gender === 'male' ?
+      '桃花运旺，易获异性青睐' :
+      '姻缘良好，贵人相助');
+  } else if (scores.love >= 70) {
+    advice.love.push('感情运势平稳，保持平和心态');
+  } else {
+    advice.love.push(gender === 'male' ?
+      '感情运势低迷，需主动经营' :
+      '桃花较弱，应多社交互动');
+  }
+  
+  return advice;
+}
+
+// 修改生成宜忌事项的函数
+function generateActivities(baZi, scores, gender) {
+  const suitable = new Set();
+  const unsuitable = new Set();
+  
+  // 基于八字日柱的建议
+  const dayElement = FIVE_ELEMENTS[baZi.day[0]];
+  const fixedSuggestions = {
+    '木': {
+      suitable: ['种植', '东方出行', '求职'],
+      unsuitable: ['伐木', '动土', '西方出行']
+    },
+    '火': {
+      suitable: ['烹饪', '南方出行', '参加喜事'],
+      unsuitable: ['水上活动', '北方出行', '冒险']
+    },
+    '土': {
+      suitable: ['装修', '置业', '农事'],
+      unsuitable: ['动土', '搬迁', '开采']
+    },
+    '金': {
+      suitable: ['理财', '西方出行', '经商'],
+      unsuitable: ['东方出行', '锻造', '手术']
+    },
+    '水': {
+      suitable: ['学习', '北方出行', '谈判'],
+      unsuitable: ['南方出行', '烹饪', '冒险']
+    }
+  };
+  
+  // 添加固定建议
+  fixedSuggestions[dayElement].suitable.forEach(item => suitable.add(item));
+  fixedSuggestions[dayElement].unsuitable.forEach(item => unsuitable.add(item));
+  
+  // 基于运势分数的建议
+  if (scores.health >= 80) {
+    suitable.add(gender === 'male' ? '剧烈运动' : '瑜伽养生');
+  } else {
+    unsuitable.add('剧烈运动');
+  }
+  
+  if (scores.wealth >= 80) {
+    suitable.add(gender === 'male' ? '投资' : '理财');
+  } else {
+    unsuitable.add('大额支出');
+  }
+  
+  if (scores.love >= 80) {
+    suitable.add(gender === 'male' ? '表白' : '参加社交');
+  } else {
+    unsuitable.add('婚嫁');
+  }
+  
+  return {
+    suitable: Array.from(suitable).slice(0, 4),
+    unsuitable: Array.from(unsuitable).slice(0, 4)
+  };
+}
+
+// 姓名五行分析函数
+function analyzeNameWuxing(name) {
+  // 姓名五行对照表
+  const nameWuxing = {
+    // 木
+    '王': '木', '李': '木', '林': '木', '孙': '木', '柳': '木', '杨': '木',
+    // 火
+    '丁': '火', '马': '火', '赵': '火', '钱': '火', '周': '火', '吴': '火',
+    // 土
+    '张': '土', '刘': '土', '陈': '土', '杜': '土', '黄': '土', '梁': '土',
+    // 金
+    '金': '金', '白': '金', '铁': '金', '石': '金', '秦': '金', '高': '金',
+    // 水
+    '孟': '水', '江': '水', '潘': '水', '许': '水', '何': '水', '吕': '水'
+  };
+  
+  // 计算姓名五行分布
+  const nameElements = {
+    '木': 0, '火': 0, '土': 0, '金': 0, '水': 0
+  };
+  
+  // 分析每个字的五行
+  for (let char of name) {
+    const element = nameWuxing[char] || '未知';
+    if (element !== '未知') {
+      nameElements[element]++;
+    }
+  }
+  
+  return nameElements;
+}
+
+// 分析姓名与八字的关系
+function analyzeNameBaziRelation(nameElements, baziElements) {
+  const relations = {
+    '木': { '水': '生', '火': '克', '金': '被克', '土': '被克', '木': '同' },
+    '火': { '木': '生', '土': '克', '水': '被克', '金': '被克', '火': '同' },
+    '土': { '火': '生', '金': '克', '木': '被克', '水': '被克', '土': '同' },
+    '金': { '土': '生', '水': '克', '火': '被克', '木': '被克', '金': '同' },
+    '水': { '金': '生', '木': '克', '土': '被克', '火': '被克', '水': '同' }
+  };
+  
+  let analysis = {
+    harmony: 0,
+    conflict: 0,
+    details: []
+  };
+  
+  // 计算相生相克关系
+  Object.entries(nameElements).forEach(([nameElement, nameCount]) => {
+    if (nameCount > 0) {
+      Object.entries(baziElements).forEach(([baziElement, baziValue]) => {
+        const relation = relations[nameElement][baziElement];
+        if (relation === '生') {
+          analysis.harmony += nameCount * (baziValue / 100);
+          analysis.details.push(`姓名中的${nameElement}与八字${baziElement}相生`);
+        } else if (relation === '克') {
+          analysis.conflict += nameCount * (baziValue / 100);
+          analysis.details.push(`姓名中的${nameElement}与八字${baziElement}相克`);
+        }
+      });
+    }
+  });
+  
+  return analysis;
+}
+
+// 更新五行详解页面
+function updateWuxingPage(name, baziElements) {
+  const nameElements = analyzeNameWuxing(name);
+  const relation = analyzeNameBaziRelation(nameElements, baziElements);
+  
+  // 更新姓名五行分析内容
+  const wuxingContent = document.querySelector('#wuxing-page .space-y-4');
+  if (wuxingContent) {
+    wuxingContent.innerHTML = `
+      <div class="p-3 bg-white/5 rounded-lg">
+        <div class="flex items-center mb-2">
+          <i class="ri-user-line text-[#4CAF50] mr-2"></i>
+          <span class="font-medium">姓名五行</span>
+        </div>
+        <div class="grid grid-cols-5 gap-2 text-center mt-4">
+          ${Object.entries(nameElements).map(([element, count]) => `
+            <div class="p-2">
+              <div class="text-sm">${element}</div>
+              <div class="text-lg font-medium">${count}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      
+      <div class="p-3 bg-white/5 rounded-lg">
+        <div class="flex items-center mb-2">
+          <i class="ri-scales-3-line text-[#FFD700] mr-2"></i>
+          <span class="font-medium">五行关系</span>
+        </div>
+        <div class="space-y-2 text-sm text-white/70">
+          ${relation.details.map(detail => `<p>${detail}</p>`).join('')}
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-4">
+          <div class="text-center">
+            <div class="text-sm text-white/60">相生度</div>
+            <div class="text-lg font-medium text-[#4CAF50]">${Math.round(relation.harmony * 100)}%</div>
+          </div>
+          <div class="text-center">
+            <div class="text-sm text-white/60">相克度</div>
+            <div class="text-lg font-medium text-[#F44336]">${Math.round(relation.conflict * 100)}%</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// 计算幸运方位
+function calculateLuckyDirections(baZi, elements) {
+  // 方位五行对应
+  const directionElements = {
+    '东': '木',
+    '南': '火',
+    '西': '金',
+    '北': '水',
+    '东南': '木',
+    '西南': '土',
+    '东北': '水',
+    '西北': '金'
+  };
+  
+  // 找出最弱的五行来补充
+  const weakestElement = Object.entries(elements).sort((a, b) => a[1] - b[1])[0][0];
+  
+  // 找出相生的五行
+  const generatingElement = {
+    '木': '水',
+    '火': '木',
+    '土': '火',
+    '金': '土',
+    '水': '金'
+  }[weakestElement];
+  
+  // 计算吉利方位
+  const luckyDirections = [];
+  Object.entries(directionElements).forEach(([direction, element]) => {
+    if (element === weakestElement || element === generatingElement) {
+      luckyDirections.push(direction);
+    }
+  });
+  
+  return luckyDirections;
+}
+
+// 更新罗盘显示
+function updateCompass(luckyDirections) {
+  const compass = document.querySelector('.compass-bg');
+  if (!compass) return;
+  
+  // 清除现有的高亮
+  const existingHighlights = compass.querySelectorAll('.direction-highlight');
+  existingHighlights.forEach(el => el.remove());
+  
+  // 为每个吉利方位添加高亮效果
+  luckyDirections.forEach(direction => {
+    const highlight = document.createElement('div');
+    highlight.className = 'direction-highlight';
+    highlight.style.position = 'absolute';
+    
+    // 设置方位位置
+    switch(direction) {
+      case '东':
+        highlight.style.right = '0';
+        highlight.style.top = '50%';
+        highlight.style.transform = 'translateY(-50%)';
+        break;
+      case '南':
+        highlight.style.bottom = '0';
+        highlight.style.left = '50%';
+        highlight.style.transform = 'translateX(-50%)';
+        break;
+      case '西':
+        highlight.style.left = '0';
+        highlight.style.top = '50%';
+        highlight.style.transform = 'translateY(-50%)';
+        break;
+      case '北':
+        highlight.style.top = '0';
+        highlight.style.left = '50%';
+        highlight.style.transform = 'translateX(-50%)';
+        break;
+      case '东南':
+        highlight.style.right = '0';
+        highlight.style.bottom = '0';
+        break;
+      case '西南':
+        highlight.style.left = '0';
+        highlight.style.bottom = '0';
+        break;
+      case '东北':
+        highlight.style.right = '0';
+        highlight.style.top = '0';
+        break;
+      case '西北':
+        highlight.style.left = '0';
+        highlight.style.top = '0';
+        break;
+    }
+    
+    // 添加高亮样式
+    highlight.style.width = '40px';
+    highlight.style.height = '40px';
+    highlight.style.background = 'radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%)';
+    highlight.style.borderRadius = '50%';
+    highlight.style.animation = 'pulse 2s infinite';
+    
+    compass.appendChild(highlight);
+  });
+  
+  // 更新说明文本
+  const directionText = document.getElementById('current-direction');
+  if (directionText) {
+    directionText.innerHTML = `吉位：${luckyDirections.join('、')}`;
+  }
+}
+
+// 修改analyze函数，添加对新功能的支持
+async function analyze() {
+  const name = document.getElementById('name').value;
+  const birthDate = document.getElementById('birthDate').value;
+  const gender = document.getElementById('gender').value;
+  const birthTime = document.getElementById('birthTime').value;
+  
+  if (!name || !birthDate) {
+    alert('请填写姓名和出生日期');
+    return;
+  }
+  
+  showLoading();
+  
+  try {
+    // 计算八字
+    const baZi = calculateBaZi(birthDate, birthTime);
+    if (!baZi) {
+      throw new Error('八字计算失败');
+    }
+    
+    // 计算五行能量
+    const elements = calculateFiveElements(baZi);
+    
+    // 计算运势分数
+    const scores = calculateFortune(baZi, elements, gender);
+    
+    // 生成运势建议
+    const advice = generateAdvice(scores, elements, gender);
+    
+    // 生成宜忌事项
+    const activities = generateActivities(baZi, scores, gender);
+    
+    // 更新基础分析页面
+    updateResultPage({
+      name,
+      baZi,
+      elements,
+      scores,
+      advice,
+      suitable: activities.suitable,
+      unsuitable: activities.unsuitable,
+      gender
+    });
+    
+    // 更新调理建议页面
+    updateAdvicePage(scores, gender);
+    
+    // 显示结果区域
+    document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+    
+    // 计算并更新幸运方位
+    const luckyDirections = calculateLuckyDirections(baZi, elements);
+    updateCompass(luckyDirections);
+    
+  } catch (error) {
+    console.error('分析失败:', error);
+    alert('分析失败，请重试');
+  } finally {
+    hideLoading();
+  }
+}
+
+// 更新日期显示
+function updateDateDisplay() {
+  const today = new Date();
+  const currentDateEl = document.getElementById('current-date');
+  const lunarDateEl = document.getElementById('lunar-date');
+  
+  if (currentDateEl) {
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    const yearText = numberToChineseYear(year);
+    const monthText = numberToChineseNumber(month);
+    const dayText = numberToChineseNumber(day);
+    currentDateEl.textContent = `${yearText}年 ${monthText}月 ${dayText}日`;
+  }
+  
+  if (lunarDateEl) {
+    try {
+      // 检查solarToLunar函数是否存在
+      if (typeof solarToLunar !== 'function') {
+        throw new Error('solarToLunar函数未定义，请检查lunar.js是否正确加载');
+      }
+      
+      const lunarDate = solarToLunar(today);
+      
+      // 检查返回的农历数据是否有效
+      if (!lunarDate || !lunarDate.lunarYear || !lunarDate.lunarMonth || !lunarDate.lunarDay) {
+        throw new Error('农历数据格式无效');
+      }
+      
+      lunarDateEl.textContent = `农历 ${lunarDate.lunarYear}年 ${lunarDate.lunarMonth}月${lunarDate.lunarDay}`;
+    } catch (e) {
+      console.error('农历计算错误:', e);
+      lunarDateEl.textContent = '农历 数据暂不可用';
+    }
+  }
+}
+
+// 数字转中文年份
+function numberToChineseYear(year) {
+  const chineseNumbers = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  return '二零' + chineseNumbers[Math.floor((year % 100) / 10)] + chineseNumbers[year % 10];
+}
+
+// 数字转中文数字
+function numberToChineseNumber(num) {
+  const chineseNumbers = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+  if (num <= 10) return chineseNumbers[num];
+  if (num < 20) return '十' + (num % 10 === 0 ? '' : chineseNumbers[num % 10]);
+  return chineseNumbers[Math.floor(num / 10)] + '十' + (num % 10 === 0 ? '' : chineseNumbers[num % 10]);
+}
+
+// 初始化图表
+function initChart() {
+  const chartDom = document.getElementById('chart');
+  if (!chartDom) return;
+  
+  const myChart = echarts.init(chartDom);
+  const option = {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'axis'
+    },
+    legend: {
+      data: ['健康运势', '财富运势', '桃花运势'],
+      textStyle: {
+        color: 'rgba(255, 255, 255, 0.6)'
+      },
+      right: '4%',
+      top: '0%'
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      top: '10%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: ['一月', '二月', '三月', '四月', '五月', '六月', '七月'],
+      axisLine: {
+        lineStyle: {
+          color: 'rgba(255, 255, 255, 0.3)'
+        }
+      },
+      axisLabel: {
+        color: 'rgba(255, 255, 255, 0.6)'
+      }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: {
+        lineStyle: {
+          color: 'rgba(255, 255, 255, 0.3)'
+        }
+      },
+      splitLine: {
+        lineStyle: {
+          color: 'rgba(255, 255, 255, 0.1)'
+        }
+      },
+      axisLabel: {
+        color: 'rgba(255, 255, 255, 0.6)'
+      }
+    },
+    series: [
+      {
+        name: '健康运势',
+        type: 'line',
+        smooth: true,
+        lineStyle: {
+          width: 2,
+          color: '#4CAF50'
+        },
+        data: [65, 70, 80, 75, 68, 72, 85]
+      },
+      {
+        name: '财富运势',
+        type: 'line',
+        smooth: true,
+        lineStyle: {
+          width: 2,
+          color: '#FFD93D'
+        },
+        data: [50, 60, 75, 80, 70, 65, 75]
+      },
+      {
+        name: '桃花运势',
+        type: 'line',
+        smooth: true,
+        lineStyle: {
+          width: 2,
+          color: '#FF9F9F'
+        },
+        data: [70, 80, 85, 75, 90, 85, 80]
+      }
+    ]
+  };
+  
+  myChart.setOption(option);
+}
+
+// 生成日历
+function generateCalendar() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  
+  const firstDayIndex = firstDay.getDay();
+  const lastDayDate = lastDay.getDate();
+  
+  const calendarGrid = document.getElementById('calendar-grid');
+  if (!calendarGrid) return;
+  
+  calendarGrid.innerHTML = '';
+  
+  // 添加空白格子
+  for (let i = 0; i < firstDayIndex; i++) {
+    const emptyDay = document.createElement('div');
+    emptyDay.className = 'p-2';
+    calendarGrid.appendChild(emptyDay);
+  }
+  
+  // 添加日期格子
+  for (let i = 1; i <= lastDayDate; i++) {
+    const dayElement = document.createElement('div');
+    const currentDate = new Date(year, month, i);
+    const isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+    
+    dayElement.className = `p-2 text-sm ${isToday ? 'bg-primary/20 rounded' : ''}`;
+    
+    // 获取农历日期
+    let lunarDayText = '-';
+    try {
+      // 确保lunar.js已加载
+      if (typeof window.solarToLunar === 'function') {
+        const lunarDate = window.solarToLunar(currentDate);
+        if (lunarDate && lunarDate.lunarDay) {
+          lunarDayText = lunarDate.lunarDay;
+        }
+      }
+    } catch (e) {
+      console.error(`日期${currentDate.toISOString()}的农历计算错误:`, e);
+    }
+    
+    dayElement.innerHTML = `
+      <div class="${isToday ? 'font-bold' : ''}">${i}</div>
+      <div class="text-xs text-white/60">${lunarDayText}</div>
+    `;
+    
+    // 添加点击事件
+    dayElement.addEventListener('click', () => {
+      // 更新选中日期的详情
+      updateDayDetails(currentDate);
+      
+      // 移除其他日期的选中状态
+      document.querySelectorAll('#calendar-grid > div').forEach(el => {
+        el.classList.remove('bg-primary/40');
+      });
+      
+      // 添加选中状态
+      if (!isToday) {
+        dayElement.classList.add('bg-primary/40');
+      }
+    });
+    
+    calendarGrid.appendChild(dayElement);
+  }
+  
+  // 默认显示今天的详情
+  updateDayDetails(today);
+}
+
+// 更新日期详情
+function updateDayDetails(date) {
+  const solarDateEl = document.getElementById('solar-date');
+  const lunarDateEl = document.getElementById('lunar-date-detail');
+  
+  if (solarDateEl && lunarDateEl) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    
+    const yearText = numberToChineseYear(year);
+    const monthText = numberToChineseNumber(month);
+    const dayText = numberToChineseNumber(day);
+    solarDateEl.textContent = `${yearText}年 ${monthText}月 ${dayText}日`;
+    
+    try {
+      const lunarDate = solarToLunar(date);
+      console.log('日期详情农历计算结果:', lunarDate);
+      if (!lunarDate || !lunarDate.lunarYear) {
+        throw new Error('农历数据无效');
+      }
+      lunarDateEl.textContent = `${lunarDate.lunarYear}年 ${lunarDate.lunarMonth}月 ${lunarDate.lunarDay}`;
+    } catch (e) {
+      console.error('日期详情农历计算错误:', e);
+      lunarDateEl.textContent = '数据获取失败';
+    }
+  }
+}
+
+// 处理罗盘方向
+function handleOrientation(event) {
+  const compassNeedle = document.getElementById('compass-needle');
+  const directionEl = document.getElementById('current-direction');
+  if (!compassNeedle || !directionEl) return;
+  
+  // 检查设备是否支持方向传感器
+  if (!event || ((!event.webkitCompassHeading && !event.alpha) || (event.alpha === null && !event.webkitCompassHeading))) {
+    directionEl.textContent = '设备不支持方向传感器';
+    return;
+  }
+  
+  const directions = ['正北', '东北', '正东', '东南', '正南', '西南', '正西', '西北'];
+  
+  // 获取设备朝向（以度为单位，0-360）
+  let heading = 0;
+  if (event.webkitCompassHeading) {
+    // iOS设备
+    heading = event.webkitCompassHeading;
+  } else {
+    // Android设备
+    heading = 360 - event.alpha;
+  }
+  
+  // 旋转罗盘指针
+  compassNeedle.style.transform = `translate(-50%, -100%) rotate(${heading}deg)`;
+  
+  // 更新方向文本
+  const index = Math.floor((heading + 22.5) / 45) % 8;
+  directionEl.textContent = directions[index];
+}
+
+// 保存报告为图片
+async function saveReportAsImage() {
+  const reportContent = document.getElementById('report-content');
+  if (!reportContent) {
+    alert('未找到报告内容');
+    return;
+  }
+
+  try {
+    showLoading();
+    
+    // 克隆报告内容
+    const clonedReport = reportContent.cloneNode(true);
+    clonedReport.style.position = 'absolute';
+    clonedReport.style.left = '-9999px';
+    clonedReport.style.background = '#000428';
+    document.body.appendChild(clonedReport);
+
+    // 确保所有图标和字体加载完成
+    await document.fonts.ready;
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const canvas = await html2canvas(clonedReport, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#000428',
+      logging: false,
+      onclone: (doc) => {
+        const elements = doc.getElementsByClassName('mystical-card');
+        for (let el of elements) {
+          el.style.transform = 'none';
+          el.style.backdropFilter = 'none';
+        }
+      }
+    });
+
+    // 转换为图片并下载
+    const image = canvas.toDataURL('image/png', 1.0);
+    const link = document.createElement('a');
+    link.download = `八字运势报告_${new Date().toLocaleDateString()}.png`;
+    link.href = image;
+    link.click();
+
+    // 清理
+    document.body.removeChild(clonedReport);
+  } catch (error) {
+    console.error('保存图片失败:', error);
+    alert('保存图片失败，请重试');
+  } finally {
+    hideLoading();
+  }
+}
+
+// 更新当前日期显示
+function updateCurrentDate() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
+  
+  console.log('更新当前日期:', year, month, day);
+  
+  // 更新公历日期显示
+  const currentDateEl = document.getElementById('current-date');
+  if (currentDateEl) {
+    const yearText = numberToChineseYear(year);
+    const monthText = numberToChineseNumber(month);
+    const dayText = numberToChineseNumber(day);
+    currentDateEl.textContent = `${yearText}年 ${monthText}月 ${dayText}日`;
+  }
+  
+  // 更新农历日期显示
+  const lunarDateEl = document.getElementById('lunar-date');
+  if (lunarDateEl) {
+    try {
+      // 检查solarToLunar函数是否存在
+      if (typeof window.solarToLunar !== 'function') {
+        console.error('solarToLunar函数未定义，lunar.js可能未正确加载');
+        throw new Error('solarToLunar函数未定义，请检查lunar.js是否正确加载');
+      }
+      
+      console.log('调用solarToLunar函数，参数:', today);
+      const lunarDate = window.solarToLunar(today);
+      console.log('农历日期计算结果:', lunarDate);
+      
+      // 检查返回的农历数据是否有效
+      if (!lunarDate) {
+        console.error('农历数据为空');
+        throw new Error('农历数据为空');
+      }
+      
+      if (!lunarDate.lunarYear || !lunarDate.lunarMonth || !lunarDate.lunarDay) {
+        console.error('农历数据格式无效:', lunarDate);
+        throw new Error('农历数据格式无效');
+      }
+      
+      lunarDateEl.textContent = `农历 ${lunarDate.lunarYear}年 ${lunarDate.lunarMonth}${lunarDate.lunarDay}`;
+      console.log('农历日期显示更新成功');
+    } catch (e) {
+      console.error('农历计算错误:', e);
+      lunarDateEl.textContent = '农历 数据获取失败';
+    }
+  }
+  
+  // 更新宜忌事宜
+  updateActivities(today);
+}
+
+// 切换页面函数
+function switchPage(toPageId) {
+  // 隐藏所有页面
+  document.querySelectorAll('.page-transition').forEach(page => {
+    page.classList.add('page-hidden');
+    page.classList.remove('page-visible');
+  });
+  
+  // 显示目标页面
+  const toPage = document.getElementById(toPageId);
+  if (toPage) {
+    toPage.classList.remove('page-hidden');
+    toPage.classList.add('page-visible');
+    window.scrollTo(0, 0); // 滚动到顶部
+    
+    // 更新导航激活状态
+    document.querySelectorAll('.nav-item').forEach(item => {
+      if (item.dataset.page === toPageId) {
+        item.classList.add('active');
+        item.classList.add('text-primary');
+        item.classList.remove('text-white/70');
+      } else {
+        item.classList.remove('active');
+        item.classList.remove('text-primary');
+        item.classList.add('text-white/70');
+      }
+    });
+  }
+}
+
+// 更新结果页面数据
+function updateResultPage(data) {
+  console.log('更新结果页面，数据:', data);
+  
+  // 更新个人资料名称
+  const profileNameEl = document.getElementById('profile-name');
+  if (profileNameEl) profileNameEl.textContent = document.getElementById('name').value || '用户';
+  
+  // 更新五行能量
+  if (data.elements) {
+    Object.entries(data.elements).forEach(([element, value]) => {
+      const elementEl = document.getElementById(`${element}-energy`);
+      if (elementEl) elementEl.textContent = `${value}%`;
+    });
+  }
+  
+  // 更新运势分数
+  if (data.scores) {
+    Object.entries(data.scores).forEach(([aspect, value]) => {
+      const percentageEl = document.getElementById(`${aspect}-percentage`);
+      const barEl = document.getElementById(`${aspect}-bar`);
+      
+      if (percentageEl) percentageEl.textContent = `${value}%`;
+      if (barEl) barEl.style.width = `${value}%`;
+      
+      // 更新建议文本
+      if (data.advice && data.advice[aspect] && data.advice[aspect].length > 0) {
+        const textEl = document.getElementById(`${aspect}-text`);
+        if (textEl) textEl.textContent = data.advice[aspect].join('，');
+      }
+    });
+  }
+
+  // 更新八字信息
+  if (data.pillars) {
+    const yearEl = document.getElementById('year-pillar');
+    const monthEl = document.getElementById('month-pillar');
+    const dayEl = document.getElementById('day-pillar');
+    const hourEl = document.getElementById('hour-pillar');
+    
+    if (yearEl) yearEl.textContent = data.pillars.year || '未知';
+    if (monthEl) monthEl.textContent = data.pillars.month || '未知';
+    if (dayEl) dayEl.textContent = data.pillars.day || '未知';
+    if (hourEl) hourEl.textContent = data.pillars.hour || '未知'; // 修改为hour而不是time
+  }
+
+  // 更新宜忌事项
+  const suitableEl = document.getElementById('suitable-today');
+  const unsuitableEl = document.getElementById('unsuitable-today');
+  
+  if (suitableEl && data.suitable) suitableEl.textContent = data.suitable.join('、');
+  if (unsuitableEl && data.unsuitable) unsuitableEl.textContent = data.unsuitable.join('、');
+  
+  // 生成运势总结
+  const summaryEl = document.getElementById('fortune-summary');
+  if (summaryEl) {
+    let summary = '根据您的八字分析，';
+    
+    if (data.scores) {
+      const aspects = Object.entries(data.scores).sort((a, b) => b[1] - a[1]);
+      if (aspects.length > 0) {
+        const highestAspect = aspects[0][0];
+        const lowestAspect = aspects[aspects.length - 1][0];
+        
+        const aspectNames = {
+          health: '健康运',
+          wealth: '财富运',
+          love: '桃花运'
+        };
+        
+        summary += `您的${aspectNames[highestAspect]}势较为旺盛，而${aspectNames[lowestAspect]}势相对较弱。`;
+      }
+    }
+    
+    if (data.elements) {
+      const elements = Object.entries(data.elements).sort((a, b) => b[1] - a[1]);
+      if (elements.length > 0) {
+        const highestElement = elements[0][0];
+        
+        const elementNames = {
+          wood: '木',
+          fire: '火',
+          earth: '土',
+          metal: '金',
+          water: '水'
+        };
+        
+        summary += `五行中${elementNames[highestElement]}气最为旺盛。`;
+      }
+    }
+    
+    if (data.suitable && data.suitable.length > 0) {
+      summary += `近期宜：${data.suitable.slice(0, 2).join('、')}等。`;
+    }
+    
+    summaryEl.textContent = summary;
+  }
+  
+  // 初始化图表
+  initChart();
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', () => {
+  // 设置当前日期
+  updateCurrentDate();
+  
+  // 初始化日历
+  generateCalendar();
+  
+  // 初始化罗盘
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', handleOrientation, false);
+  } else {
+    const directionEl = document.getElementById('current-direction');
+    if (directionEl) {
+      directionEl.textContent = '设备不支持方向传感器';
+    }
+  }
+  
+  // 初始化图表
+  initChart();
+  
+  // 确保页面初始状态正确
+  const pages = ['input-page', 'calendar-page', 'compass-page', 'profile-page'];
+  pages.forEach(pageId => {
+    const page = document.getElementById(pageId);
+    if (page) {
+      if (pageId === 'input-page') {
+        page.classList.add('page-visible');
+        page.classList.remove('page-hidden');
+      } else {
+        page.classList.add('page-hidden');
+        page.classList.remove('page-visible');
+      }
+    }
+  });
+  
+  // 使用事件委托为导航菜单添加事件监听
+  document.querySelector('nav.golden-nav').addEventListener('click', (e) => {
+    const navItem = e.target.closest('.nav-item');
+    if (navItem) {
+      const targetPage = navItem.getAttribute('data-page');
+      
+      // 确保目标页面存在
+      if (document.getElementById(targetPage)) {
+        // 移除所有active状态
+        document.querySelectorAll('.nav-item').forEach(item => {
+          item.classList.remove('active', 'text-primary');
+          item.classList.add('text-white/70');
+        });
+
+        // 设置当前active状态
+        navItem.classList.add('active', 'text-primary');
+        navItem.classList.remove('text-white/70');
+
+        // 执行页面切换
+        switchPage(targetPage);
+      } else {
+        console.error('目标页面不存在:', targetPage);
+      }
+    }
+  });
+
+  // 为导航项添加点击事件
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const targetPage = item.dataset.page;
+      if (targetPage) {
+        switchPage(targetPage);
+      }
+    });
+  });
+  
+  // 初始化显示主页
+  switchPage('input-page');
+});
+
+// 更新调理建议页面
+function updateAdvicePage(scores, gender) {
+  // 饮食建议
+  const dietAdviceEl = document.getElementById('diet-advice');
+  if (dietAdviceEl) {
+    let dietAdvice = [];
+    if (scores.health >= 80) {
+      dietAdvice.push('• 可以适当增加营养补充，注意均衡饮食');
+      dietAdvice.push('• 建议多食用新鲜蔬果，保持充足水分');
+      dietAdvice.push('• 早餐：全谷物面包、牛奶、水果');
+      dietAdvice.push('• 午餐：杂粮饭、瘦肉、时令蔬菜');
+      dietAdvice.push('• 晚餐：清淡为主，避免过饱');
+    } else if (scores.health >= 60) {
+      dietAdvice.push('• 注意饮食规律，避免过度油腻');
+      dietAdvice.push('• 建议适量补充维生素，增强免疫力');
+      dietAdvice.push('• 早餐：粥类、鸡蛋、蔬菜');
+      dietAdvice.push('• 午餐：米饭、鱼类、豆制品');
+      dietAdvice.push('• 晚餐：易消化食物，控制量');
+    } else {
+      dietAdvice.push('• 需要调理肠胃，注意饮食清淡');
+      dietAdvice.push('• 建议补充优质蛋白，改善体质');
+      dietAdvice.push('• 早餐：白粥、煮鸡蛋、熟水果');
+      dietAdvice.push('• 午餐：清炒菜、瘦肉汤、米饭');
+      dietAdvice.push('• 晚餐：清淡易消化，少量多餐');
+    }
+    dietAdviceEl.innerHTML = dietAdvice.join('<br>');
+  }
+
+  // 生活作息建议
+  const lifestyleAdviceEl = document.getElementById('lifestyle-advice');
+  if (lifestyleAdviceEl) {
+    let lifestyleAdvice = [];
+    if (scores.health >= 80) {
+      lifestyleAdvice.push('• 早晨6:00-7:00起床，保持精力充沛');
+      lifestyleAdvice.push('• 午间12:30-13:30小憩，提升效率');
+      lifestyleAdvice.push('• 晚上22:00-23:00入睡，保证睡眠');
+      lifestyleAdvice.push('• 工作时每隔1小时适当活动');
+    } else if (scores.health >= 60) {
+      lifestyleAdvice.push('• 早晨7:00-8:00起床，不要赖床');
+      lifestyleAdvice.push('• 午间13:00-14:00休息，放松身心');
+      lifestyleAdvice.push('• 晚上22:30前入睡，改善睡眠');
+      lifestyleAdvice.push('• 注意工作节奏，定时休息');
+    } else {
+      lifestyleAdvice.push('• 早晨不要睡过8:00，规律作息');
+      lifestyleAdvice.push('• 午间必须保证休息时间');
+      lifestyleAdvice.push('• 晚上22:00前入睡，提高睡眠质量');
+      lifestyleAdvice.push('• 增加休息时间，避免熬夜');
+    }
+    lifestyleAdviceEl.innerHTML = lifestyleAdvice.join('<br>');
+  }
+
+  // 运动建议
+  const exerciseAdviceEl = document.getElementById('exercise-advice');
+  if (exerciseAdviceEl) {
+    let exerciseAdvice = [];
+    if (scores.health >= 80) {
+      exerciseAdvice.push(gender === 'male' ? 
+        '• 可进行中高强度运动：跑步、游泳、篮球' : 
+        '• 可进行中等强度运动：瑜伽、游泳、健身操');
+      exerciseAdvice.push('• 每周运动4-5次，每次45-60分钟');
+      exerciseAdvice.push('• 建议清晨或傍晚运动');
+      exerciseAdvice.push('• 注意运动前后热身和拉伸');
+    } else if (scores.health >= 60) {
+      exerciseAdvice.push('• 适合进行中等强度运动：快走、慢跑、太极');
+      exerciseAdvice.push('• 每周运动3-4次，每次30-45分钟');
+      exerciseAdvice.push('• 建议傍晚运动，避开中午');
+      exerciseAdvice.push('• 循序渐进，不要勉强');
+    } else {
+      exerciseAdvice.push('• 建议进行低强度运动：散步、太极、八段锦');
+      exerciseAdvice.push('• 每天坚持运动20-30分钟');
+      exerciseAdvice.push('• 以舒适为主，避免过度疲劳');
+      exerciseAdvice.push('• 可以分多次进行，循序渐进');
+    }
+    exerciseAdviceEl.innerHTML = exerciseAdvice.join('<br>');
+  }
+
+  // 心理调节建议
+  const mentalAdviceEl = document.getElementById('mental-advice');
+  if (mentalAdviceEl) {
+    let mentalAdvice = [];
+    if (scores.love >= 80) {
+      mentalAdvice.push('• 保持积极乐观的心态，享受生活');
+      mentalAdvice.push('• 参与社交活动，扩展人际圈');
+      mentalAdvice.push('• 培养兴趣爱好，丰富精神生活');
+      mentalAdvice.push('• 学习新技能，保持思维活力');
+    } else if (scores.love >= 60) {
+      mentalAdvice.push('• 保持平和心态，适度社交');
+      mentalAdvice.push('• 与家人朋友多交流，分享心情');
+      mentalAdvice.push('• 听音乐、看书，放松心情');
+      mentalAdvice.push('• 培养良好的兴趣爱好');
+    } else {
+      mentalAdvice.push('• 每天进行冥想或深呼吸练习');
+      mentalAdvice.push('• 寻找知心好友倾诉，释放压力');
+      mentalAdvice.push('• 适当运动，改善心情');
+      mentalAdvice.push('• 保持规律的作息，改善心态');
+    }
+    mentalAdviceEl.innerHTML = mentalAdvice.join('<br>');
+  }
+
+  // 更新每日建议时段
+  const recommendedTimeEl = document.getElementById('recommended-time');
+  if (recommendedTimeEl) {
+    const timeAdvice = [
+      `活动：${scores.health >= 80 ? '9:00-11:00' : '10:00-11:30'}`,
+      `休息：${scores.health >= 80 ? '14:00-14:30' : '13:30-15:00'}`,
+      `运动：${scores.health >= 80 ? '17:00-18:00' : '16:00-17:00'}`
+    ];
+    recommendedTimeEl.innerHTML = timeAdvice.join('<br>');
+  }
+
+  // 更新注意事项
+  const dailyCautionsEl = document.getElementById('daily-cautions');
+  if (dailyCautionsEl) {
+    const cautions = [
+      '适度饮水，每天8杯',
+      '保持心情愉悦',
+      scores.health >= 80 ? '适量运动，劳逸结合' : '注意休息，避免劳累'
+    ];
+    dailyCautionsEl.innerHTML = cautions.join('<br>');
+  }
+}
+
+// 添加导航栏居中计算函数
+function centerNavItems() {
+  const navContainer = document.getElementById('nav-container');
+  const navItems = document.getElementById('nav-items');
+  if (!navContainer || !navItems) return;
+
+  // 获取导航容器和导航项的宽度
+  const containerWidth = navContainer.offsetWidth;
+  const itemsWidth = navItems.offsetWidth;
+  
+  // 计算左边距
+  const leftMargin = (containerWidth - itemsWidth) / 2;
+  
+  // 设置导航项的位置
+  navItems.style.marginLeft = `${leftMargin}px`;
+}
+
+// 在页面加载和窗口调整时执行居中计算
+document.addEventListener('DOMContentLoaded', () => {
+  // ... 其他现有的初始化代码 ...
+  
+  // 执行导航栏居中
+  centerNavItems();
+  
+  // 监听窗口大小变化
+  window.addEventListener('resize', centerNavItems);
+});
+</script>
+</nav>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
 </body>
+<!-- 修改底部导航栏 -->
+<nav class="golden-nav fixed bottom-0 w-full h-16 z-50">
+  <div class="h-full flex justify-center items-center">
+    <div class="flex items-center space-x-20">
+      <a class="nav-item active text-primary flex flex-col items-center w-16" data-page="input-page">
+        <i class="ri-home-4-line text-xl"></i>
+        <span class="text-xs mt-1">主页</span>
+      </a>
+      <a class="nav-item text-white/70 flex flex-col items-center w-16" data-page="compass-page">
+        <i class="ri-compass-3-line text-xl"></i>
+        <span class="text-xs mt-1">罗盘</span>
+      </a>
+      <a class="nav-item text-white/70 flex flex-col items-center w-16" data-page="advice-page">
+        <i class="ri-heart-pulse-line text-xl"></i>
+        <span class="text-xs mt-1">调理</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- 免责声明 -->
+<div class="fixed bottom-16 w-full text-center text-xs text-white/50 pb-4 bg-gradient-to-t from-black/50">
+  <p class="mb-1">本应用仅供娱乐参考，不作为任何决策依据</p>
+  <p>内容均为模拟计算，不承担任何责任</p>
+</div>
 </html>
